@@ -126,9 +126,9 @@ contract LandDAO is ERC20, Ownable {
     }
 
     function distributeToDlsDao(uint256 amount) external {
-        require(address(dlsDao) != address(0));
-        require(amount <= remainingDlsDaoSupply);
-        require(dlsDaoReleasableAmount() >= amount);
+        require(address(dlsDao) != address(0), "DLS DAO address not set");
+        require(amount <= remainingDlsDaoSupply, "Amount exceeds supply");
+        require(dlsDaoReleasableAmount() >= amount, "Amount more than releasable");
         _transfer(address(this), address(dlsDao), amount);
         remainingDlsDaoSupply -= amount;
         emit DlsDaoDistributed(address(dlsDao), amount);
@@ -175,29 +175,29 @@ contract LandDAO is ERC20, Ownable {
     }
 
     // Land Owners logic
-    function claimLandOwner(uint256 amount) external {
-        // TODO check Merkle Proof
-        uint256 _halfDate = startDate + 60 days;
-        uint256 _endDate = _halfDate + 120 days;
-        require(block.timestamp <= _endDate);
-        uint8 claimed = landOwnerClaimed[msg.sender];
-        require(claimed < 2);
-        if (block.timestamp < _halfDate) {
-            require(claimed == 0);
-            claimed = 1;
-            amount = amount / 2;
-        } else {
-            if (claimed == 1) {
-                amount = amount / 2;
-            }
-            claimed = 2;
-        }
-        landOwnerClaimed[msg.sender] = claimed;
-        require(remainingLandOwnerSupply >= amount);
-        _transfer(address(this), msg.sender, amount);
-        remainingLandOwnerSupply -= amount;
-        emit LandOwnerClaimed(msg.sender, amount, claimed);
-    }
+//    function claimLandOwner(uint256 amount) external {
+//        // TODO check Merkle Proof
+//        uint256 _halfDate = startDate + 60 days;
+//        uint256 _endDate = _halfDate + 120 days;
+//        require(block.timestamp <= _endDate);
+//        uint8 claimed = landOwnerClaimed[msg.sender];
+//        require(claimed < 2);
+//        if (block.timestamp < _halfDate) {
+//            require(claimed == 0);
+//            claimed = 1;
+//            amount = amount / 2;
+//        } else {
+//            if (claimed == 1) {
+//                amount = amount / 2;
+//            }
+//            claimed = 2;
+//        }
+//        landOwnerClaimed[msg.sender] = claimed;
+//        require(remainingLandOwnerSupply >= amount);
+//        _transfer(address(this), msg.sender, amount);
+//        remainingLandOwnerSupply -= amount;
+//        emit LandOwnerClaimed(msg.sender, amount, claimed);
+//    }
 
     function distributeUnclaimedLandOwnerSupply() external onlyOwner{
         require(block.timestamp > startDate + 180 days);
