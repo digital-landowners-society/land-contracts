@@ -74,7 +74,7 @@ contract LandDAO is ERC20Pausable, Ownable {
     event InvestmentWalletSet(address investmentWallet);
     event InvestmentWalletFrozen();
 
-    //Treasury
+    // Team
     event TeamEthereumDistributed(address teamWallet,uint amount);
     event TeamTokensDistributed(address teamWallet,uint amount);
     event TeamWalletSet(address teamWallet);
