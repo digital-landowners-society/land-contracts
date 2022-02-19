@@ -1,116 +1,103 @@
-const { expect } = require("chai");
-const { ethers, network } = require("hardhat");
-const { BigNumber } = require("ethers");
+const {expect} = require("chai");
+const {ethers, network} = require("hardhat");
+const {BigNumber} = require("ethers");
+
+const deployLandDao = async () => {
+  const LandDao = await ethers.getContractFactory("LandDAO");
+  const landDao = await LandDao.deploy(
+    "LandDAO",
+    "LAND",
+    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
+  );
+  await landDao.deployed();
+  return landDao;
+};
+
+const getDlsDao = async (landDao) => {
+  const dlsDaoManagerAddress = await landDao.dlsDaoManager();
+  const DlsDaoManager = await ethers.getContractFactory("DlsDaoManager");
+  return DlsDaoManager.attach(dlsDaoManagerAddress);
+};
 
 describe("LandDAO Distribute to DLS DAO", function () {
   it("Should throw exception when DLS DAO address not set", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
-    await expect(landDAO.distributeToDlsDao(1)).to.be.revertedWith(
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
+    await expect(dlsDaoManager.distributeToDlsDao(1)).to.be.revertedWith(
       "DLS DAO address not set"
     );
   });
 
   it("Should throw exception when DLS DAO amount exceeds supply", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
     const [owner] = await ethers.getSigners();
-    await landDAO.setDlsDao(owner.address);
+    await dlsDaoManager.setDlsDao(owner.address);
     await expect(
-      landDAO.distributeToDlsDao(BigNumber.from(10).pow(27))
+      dlsDaoManager.distributeToDlsDao(BigNumber.from(10).pow(27))
     ).to.be.revertedWith("Amount exceeds supply");
   });
 
   it("Should throw exception when DLS DAO amount more than releasable", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
     const [owner] = await ethers.getSigners();
-    await landDAO.setDlsDao(owner.address);
-    await expect(landDAO.distributeToDlsDao(1)).to.be.revertedWith(
+    await dlsDaoManager.setDlsDao(owner.address);
+    await expect(dlsDaoManager.distributeToDlsDao(1)).to.be.revertedWith(
       "Amount more than releasable"
     );
   });
 
   it("Should release", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
     const [owner] = await ethers.getSigners();
-    await landDAO.setDlsDao(owner.address);
+    await dlsDaoManager.setDlsDao(owner.address);
     const nextDate = 3600 * 24 * 100;
     await network.provider.send("evm_increaseTime", [nextDate]);
     await network.provider.send("evm_mine");
-    await landDAO.distributeToDlsDao(1);
-    const balance = await landDAO.balanceOf(owner.address);
+    await dlsDaoManager.distributeToDlsDao(1);
+    const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(1);
   });
 
   it("Should release max", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
     const [owner] = await ethers.getSigners();
-    await landDAO.setDlsDao(owner.address);
+    await dlsDaoManager.setDlsDao(owner.address);
     const nextDate = 3600 * 24 * 720;
     await network.provider.send("evm_increaseTime", [nextDate]);
     await network.provider.send("evm_mine");
     const maxSupply = BigNumber.from(10).pow(18).mul(90_000_000);
-    await landDAO.distributeToDlsDao(maxSupply);
-    const balance = await landDAO.balanceOf(owner.address);
+    await dlsDaoManager.distributeToDlsDao(maxSupply);
+    const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(maxSupply);
   });
 
   it("Should not release more", async function () {
-    const LandDAO = await ethers.getContractFactory("LandDAO");
-    const landDAO = await LandDAO.deploy(
-      "LandDAO",
-      "LAND",
-      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-    );
-    await landDAO.deployed();
+    const landDao = await deployLandDao();
+    const dlsDaoManager = await getDlsDao(landDao);
     const [owner] = await ethers.getSigners();
-    await landDAO.setDlsDao(owner.address);
+    await dlsDaoManager.setDlsDao(owner.address);
     const nextDay = 3600 * 24;
     const nextDate = nextDay * 91;
     await network.provider.send("evm_increaseTime", [nextDate]);
     await network.provider.send("evm_mine");
     const oneDayAmount = BigNumber.from(10).pow(18).mul(142857);
-    await landDAO.distributeToDlsDao(oneDayAmount);
-    const balance = await landDAO.balanceOf(owner.address);
+    await dlsDaoManager.distributeToDlsDao(oneDayAmount);
+    const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(oneDayAmount);
-    await expect(landDAO.distributeToDlsDao(oneDayAmount)).to.be.revertedWith(
-      "Amount more than releasable"
-    );
+    await expect(
+      dlsDaoManager.distributeToDlsDao(oneDayAmount)
+    ).to.be.revertedWith("Amount more than releasable");
     await network.provider.send("evm_increaseTime", [nextDay]);
     await network.provider.send("evm_mine");
-    await landDAO.distributeToDlsDao(oneDayAmount);
-    const balance2 = await landDAO.balanceOf(owner.address);
+    await dlsDaoManager.distributeToDlsDao(oneDayAmount);
+    const balance2 = await landDao.balanceOf(owner.address);
     expect(balance2).to.equal(oneDayAmount.mul(2));
-    await expect(landDAO.distributeToDlsDao(oneDayAmount)).to.be.revertedWith(
-      "Amount more than releasable"
-    );
+    await expect(
+      dlsDaoManager.distributeToDlsDao(oneDayAmount)
+    ).to.be.revertedWith("Amount more than releasable");
   });
 });

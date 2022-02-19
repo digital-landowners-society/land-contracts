@@ -8,12 +8,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/finance/VestingWallet.sol";
 import "./LandOwnerManager.sol";
 import "./DlsNftOwnerManager.sol";
+import "./DlsDaoManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
     // TODO Add support for roles, make pause-able, owner should not manage
-    // TODO Make contact pause-able?
-    // TODO Move un-claimable tokens to treasury directly
     // TODO remove storage vars
     // TODO check with Harthat gas reporter
     // TODO use useDapp
@@ -34,13 +33,9 @@ contract LandDAO is ERC20Pausable, Ownable {
     uint256 public startDate;
 
     // Land Owners
-    LandOwnerManager landOwnerManager;
-    DlsNftOwnerManager dlsNftOwnerManager;
-
-    // DLS DAO Data
-    IERC20 public dlsDao;
-    bool public dlsDaoFrozen = false;
-    uint256 remainingDlsDaoSupply = dlsDaoSupply;
+    LandOwnerManager public landOwnerManager;
+    DlsNftOwnerManager public dlsNftOwnerManager;
+    DlsDaoManager public dlsDaoManager;
 
     // Treasury Data
     address public treasury;
@@ -62,11 +57,6 @@ contract LandDAO is ERC20Pausable, Ownable {
     bool public teamWalletFrozen = false;
 
     // EVENTS
-
-    // DlsDao
-    event DlsDaoDistributed(address dlsDao, uint256 amount);
-    event DlsDaoSet(address dlsDao);
-    event DlsDaoFrozen();
 
     // Strategic Sale
     event StrategicSaleReleased(address sender, address beneficiary, uint256 amount);
@@ -95,41 +85,17 @@ contract LandDAO is ERC20Pausable, Ownable {
         uint256 _startDate = block.timestamp;
         startDate = _startDate;
 
-        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + dlsDaoSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
+        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
         landOwnerManager = new LandOwnerManager(IERC20(this), _startDate);
         dlsNftOwnerManager = new DlsNftOwnerManager(IERC20(this), dlsNftAddress);
+        dlsDaoManager = new DlsDaoManager(IERC20(this), msg.sender, _startDate);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
+        _mint(address(dlsDaoManager), dlsDaoSupply);
     }
 
     // LOGIC
-
-    // DLS DAO Logic
-    function freezeDlsDao() external onlyOwner {
-        require(address(dlsDao) != address(0));
-        dlsDaoFrozen = true;
-        emit DlsDaoFrozen();
-    }
-
-    function dlsDaoReleasableAmount() public view returns (uint256) {
-        return _vestingSchedule(dlsDaoSupply) - (dlsDaoSupply - remainingDlsDaoSupply);
-    }
-
-    function setDlsDao(address dlsDaoAddress) external onlyOwner {
-        require(!treasuryFrozen);
-        dlsDao = IERC20(dlsDaoAddress);
-        emit DlsDaoSet(dlsDaoAddress);
-    }
-
-    function distributeToDlsDao(uint256 amount) external {
-        require(address(dlsDao) != address(0), "DLS DAO address not set");
-        require(amount <= remainingDlsDaoSupply, "Amount exceeds supply");
-        require(dlsDaoReleasableAmount() >= amount, "Amount more than releasable");
-        _transfer(address(this), address(dlsDao), amount);
-        remainingDlsDaoSupply -= amount;
-        emit DlsDaoDistributed(address(dlsDao), amount);
-    }
 
     // Treasury Logic
     function freezeTreasury() external onlyOwner {
