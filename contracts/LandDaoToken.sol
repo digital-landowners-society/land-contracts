@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/finance/VestingWallet.sol";
 import "./LandOwnerManager.sol";
 import "./DlsNftOwnerManager.sol";
 import "./DlsDaoManager.sol";
+import "./StrategicSaleManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
@@ -36,15 +37,12 @@ contract LandDAO is ERC20Pausable, Ownable {
     LandOwnerManager public landOwnerManager;
     DlsNftOwnerManager public dlsNftOwnerManager;
     DlsDaoManager public dlsDaoManager;
+    StrategicSaleManager public strategicSaleManager;
 
     // Treasury Data
     address public treasury;
     bool public treasuryFrozen = false;
     uint256 remainingTreasurySupply = treasurySupply;
-
-    // Strategic Sales Data
-    uint256 remainingStrategicSaleSupply = strategicSaleSupply;
-    mapping(address=>VestingWallet[]) strategicSaleVestingMap;
 
     // Investment Data
     address public investmentWallet;
@@ -57,10 +55,6 @@ contract LandDAO is ERC20Pausable, Ownable {
     bool public teamWalletFrozen = false;
 
     // EVENTS
-
-    // Strategic Sale
-    event StrategicSaleReleased(address sender, address beneficiary, uint256 amount);
-    event StrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds);
 
     // Treasury
     event TreasuryDistributed(address treasury, uint256 amount);
@@ -85,14 +79,16 @@ contract LandDAO is ERC20Pausable, Ownable {
         uint256 _startDate = block.timestamp;
         startDate = _startDate;
 
-        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
-        landOwnerManager = new LandOwnerManager(IERC20(this), _startDate);
-        dlsNftOwnerManager = new DlsNftOwnerManager(IERC20(this), dlsNftAddress);
-        dlsDaoManager = new DlsDaoManager(IERC20(this), msg.sender, _startDate);
+        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + liquidityManagementSupply + treasurySupply + teamSupply;
+        landOwnerManager = new LandOwnerManager();
+        dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
+        dlsDaoManager = new DlsDaoManager(msg.sender);
+        strategicSaleManager = new StrategicSaleManager(msg.sender);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
         _mint(address(dlsDaoManager), dlsDaoSupply);
+        _mint(address(strategicSaleManager), strategicSaleSupply);
     }
 
     // LOGIC
@@ -130,42 +126,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         emit TreasuryDistributed(treasury, remainingLandOwnerSupply);
     }
 
-    // Strategic Sale
-    function doStrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds) public onlyOwner {
-        require(beneficiary != address(0));
-        require(amount <= remainingStrategicSaleSupply);
-        require(startTimestamp > startDate);
-        VestingWallet vestingWallet = new VestingWallet(beneficiary, startTimestamp, durationSeconds);
-        strategicSaleVestingMap[beneficiary].push(vestingWallet);
-        _transfer(address(this), address(vestingWallet), amount);
-        remainingStrategicSaleSupply -= amount;
-        emit StrategicSaleVesting(beneficiary, amount, startTimestamp, durationSeconds);
-    }
 
-    function doStrategicSaleDirect(address beneficiary, uint256 amount) public onlyOwner {
-        require(beneficiary != address(0));
-        require(amount <= remainingStrategicSaleSupply);
-        _transfer(address(this), beneficiary, amount);
-        remainingStrategicSaleSupply -= amount;
-        emit StrategicSaleReleased(msg.sender, beneficiary, amount);
-    }
-
-    function doStrategicSaleReleaseOwner(address beneficiary) public onlyOwner {
-        strategicSaleRelease(beneficiary);
-    }
-
-    function doStrategicSaleRelease() public {
-        strategicSaleRelease(msg.sender);
-    }
-
-    function strategicSaleRelease(address beneficiary) internal {
-        VestingWallet[] memory vestingWallets = strategicSaleVestingMap[beneficiary];
-        require(vestingWallets.length > 0);
-        for (uint256 i=0; i<vestingWallets.length; i++) {
-            vestingWallets[i].release(address(this));
-        }
-        emit StrategicSaleReleased(msg.sender, beneficiary, 0);
-    }
 
     // Payments
     receive() external payable {

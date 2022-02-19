@@ -12,9 +12,9 @@ contract LandOwnerManager{
     // Land Owners
     event LandOwnerClaimed(address landOwner, uint256 amount, uint256 claimed);
 
-    constructor(IERC20 _landDao, uint256 _startDate)  {
-        startDate = _startDate;
-        landDao = _landDao;
+    constructor()  {
+        startDate = block.timestamp;
+        landDao = IERC20(msg.sender);
     }
 
     // Land Owners logic

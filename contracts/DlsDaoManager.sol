@@ -19,9 +19,9 @@ contract DlsDaoManager is Ownable {
     event DlsDaoSet(address dlsDao);
     event DlsDaoFrozen();
 
-    constructor(IERC20 _landDao, address landDaoOwner, uint256 _startDate) Ownable() {
-        landDao = _landDao;
-        startDate = _startDate;
+    constructor(address landDaoOwner) {
+        landDao = IERC20(msg.sender);
+        startDate = block.timestamp;
         _transferOwnership(landDaoOwner);
     }
 

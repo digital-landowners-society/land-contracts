@@ -13,9 +13,9 @@ contract DlsNftOwnerManager {
 
     event DlsNftClaimed(address owner, uint256[] tokenIds, uint256 claimAmount);
 
-    constructor(IERC20 _landDao, address dlsNftAddress){
+    constructor(address dlsNftAddress){
         dlsNft = IERC721(dlsNftAddress);
-        landDao = _landDao;
+        landDao = IERC20(msg.sender);
     }
 
     // DLS NFT Logic
