@@ -305,7 +305,7 @@ contract LandDAO is ERC20, Ownable {
     function _vestingSchedule(uint256 totalAllocation) internal view returns (uint256) {
         uint256 timestamp = block.timestamp;
         uint256 start = startDate + 90 days;
-        uint256 duration = 720 days;
+        uint256 duration = 630 days;
         if (timestamp < start) {
             return 0;
         } else if (timestamp > start + duration) {
