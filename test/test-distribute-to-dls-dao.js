@@ -1,6 +1,6 @@
-const {expect} = require("chai");
-const {ethers, network} = require("hardhat");
-const {BigNumber} = require("ethers");
+const { expect } = require("chai");
+const { ethers, network } = require("hardhat");
+const { BigNumber } = require("ethers");
 
 describe("LandDAO Distribute to DLS DAO", function () {
   it("Should throw exception when DLS DAO address not set", async function () {
@@ -81,5 +81,36 @@ describe("LandDAO Distribute to DLS DAO", function () {
     await landDAO.distributeToDlsDao(maxSupply);
     const balance = await landDAO.balanceOf(owner.address);
     expect(balance).to.equal(maxSupply);
+  });
+
+  it("Should not release more", async function () {
+    const LandDAO = await ethers.getContractFactory("LandDAO");
+    const landDAO = await LandDAO.deploy(
+      "LandDAO",
+      "LAND",
+      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
+    );
+    await landDAO.deployed();
+    const [owner] = await ethers.getSigners();
+    await landDAO.setDlsDao(owner.address);
+    const nextDay = 3600 * 24;
+    const nextDate = nextDay * 91;
+    await network.provider.send("evm_increaseTime", [nextDate]);
+    await network.provider.send("evm_mine");
+    const oneDayAmount = BigNumber.from(10).pow(18).mul(142857);
+    await landDAO.distributeToDlsDao(oneDayAmount);
+    const balance = await landDAO.balanceOf(owner.address);
+    expect(balance).to.equal(oneDayAmount);
+    await expect(landDAO.distributeToDlsDao(oneDayAmount)).to.be.revertedWith(
+      "Amount more than releasable"
+    );
+    await network.provider.send("evm_increaseTime", [nextDay]);
+    await network.provider.send("evm_mine");
+    await landDAO.distributeToDlsDao(oneDayAmount);
+    const balance2 = await landDAO.balanceOf(owner.address);
+    expect(balance2).to.equal(oneDayAmount.mul(2));
+    await expect(landDAO.distributeToDlsDao(oneDayAmount)).to.be.revertedWith(
+      "Amount more than releasable"
+    );
   });
 });
