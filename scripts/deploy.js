@@ -15,7 +15,11 @@ async function main() {
 
   // We get the contract to deploy
   const LandDAO = await hre.ethers.getContractFactory("LandDAO");
-  const landDAO = await LandDAO.deploy("LandDAO", "LAND", "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be");
+  const landDAO = await LandDAO.deploy(
+    "LandDAO",
+    "LAND",
+    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
+  );
 
   await landDAO.deployed();
 

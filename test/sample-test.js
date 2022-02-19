@@ -1,19 +1,18 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const {BigNumber} = require("ethers");
 
 describe("LandDAO", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const LandDAO = await ethers.getContractFactory("Greeter");
-    const landDAO = await LandDAO.deploy("Hello, world!");
+  it("Should return the total supply", async function () {
+    const LandDAO = await ethers.getContractFactory("LandDAO");
+    const landDAO = await LandDAO.deploy(
+      "LandDAO",
+      "LAND",
+      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
+    );
     await landDAO.deployed();
-
-    expect(await landDAO.greet()).to.equal("Hello, world!");
-
-    const setGreetingTx = await landDAO.setGreeting("Hola, mundo!");
-
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
-
-    expect(await landDAO.greet()).to.equal("Hola, mundo!");
+    const totalSupply = await landDAO.totalSupply();
+    const expectedTotalSupply = BigNumber.from(10).pow(27);
+    expect(totalSupply).to.equal(expectedTotalSupply);
   });
 });
