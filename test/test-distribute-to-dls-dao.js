@@ -81,5 +81,6 @@ describe("LandDAO Distribute to DLS DAO", function () {
     await landDAO.distributeToDlsDao(maxSupply);
     const balance = await landDAO.balanceOf(owner.address);
     expect(balance).to.equal(maxSupply);
+    await landDAO.distributeToDlsDao(1);
   });
 });
