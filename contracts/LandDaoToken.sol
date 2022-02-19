@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/finance/VestingWallet.sol";
+import "./LandOwner.sol";
 
 contract LandDAO is ERC20, Ownable {
 
@@ -31,6 +32,9 @@ contract LandDAO is ERC20, Ownable {
     uint256 public strategicSaleSupply =       50_000_000e18;
     uint256 public startDate;
 
+    // Land Owners
+    LandOwner landOwner;
+
     // DLS DAO Data
     IERC20 public dlsDao;
     bool public dlsDaoFrozen = false;
@@ -44,10 +48,6 @@ contract LandDAO is ERC20, Ownable {
     // DLS NFT Data
     IERC721 public dlsNft;
     mapping(uint256=>bool) private dlsNftOwnerClaimed;
-
-    // Land Owner Data
-    uint256 remainingLandOwnerSupply = landOwnerSupply;
-    mapping(address=>uint8) private landOwnerClaimed;
 
     // Strategic Sales Data
     uint256 remainingStrategicSaleSupply = strategicSaleSupply;
@@ -67,9 +67,6 @@ contract LandDAO is ERC20, Ownable {
 
     // DLS NFSs
     event DlsNftClaimed(address owner, uint256[] tokenIds, uint256 claimAmount);
-
-    // Land Owners
-    event LandOwnerClaimed(address landOwner, uint256 amount, uint256 claimed);
 
     // DlsDao
     event DlsDaoDistributed(address dlsDao, uint256 amount);
@@ -99,11 +96,14 @@ contract LandDAO is ERC20, Ownable {
     event TeamWalletFrozen();
 
     // CONSTRUCTOR
-    constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) {
-        startDate = block.timestamp;
+    constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) Ownable() {
+        uint256 _startDate = block.timestamp;
+        startDate = _startDate;
         dlsNft = IERC721(dlsNftAddress);
-        uint256 totalToMinted = landOwnerSupply + investmentRewardsSupply + stackingRewardsSupply + dlsDaoSupply + dlsNftSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
+        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + dlsDaoSupply + dlsNftSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
+        landOwner = new LandOwner(IERC20(this), _startDate);
         _mint(address(this), totalToMinted);
+        _mint(address(landOwner), landOwnerSupply);
     }
 
     // LOGIC
@@ -174,34 +174,10 @@ contract LandDAO is ERC20, Ownable {
         emit DlsNftClaimed(msg.sender, tokenIds, amount);
     }
 
-    // Land Owners logic
-//    function claimLandOwner(uint256 amount) external {
-//        // TODO check Merkle Proof
-//        uint256 _halfDate = startDate + 60 days;
-//        uint256 _endDate = _halfDate + 120 days;
-//        require(block.timestamp <= _endDate);
-//        uint8 claimed = landOwnerClaimed[msg.sender];
-//        require(claimed < 2);
-//        if (block.timestamp < _halfDate) {
-//            require(claimed == 0);
-//            claimed = 1;
-//            amount = amount / 2;
-//        } else {
-//            if (claimed == 1) {
-//                amount = amount / 2;
-//            }
-//            claimed = 2;
-//        }
-//        landOwnerClaimed[msg.sender] = claimed;
-//        require(remainingLandOwnerSupply >= amount);
-//        _transfer(address(this), msg.sender, amount);
-//        remainingLandOwnerSupply -= amount;
-//        emit LandOwnerClaimed(msg.sender, amount, claimed);
-//    }
-
     function distributeUnclaimedLandOwnerSupply() external onlyOwner{
         require(block.timestamp > startDate + 180 days);
-        _transfer(address(this), treasury, remainingLandOwnerSupply);
+        uint256 remainingLandOwnerSupply = balanceOf(address(landOwner));
+        _transfer(address(landOwner), treasury, remainingLandOwnerSupply);
         emit TreasuryDistributed(treasury, remainingLandOwnerSupply);
     }
 
