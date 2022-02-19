@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { BigNumber } = require("ethers");
 
-describe("LandDAO", function () {
+describe("LandDAO Deploy", function () {
   it("Should return the total supply", async function () {
     const LandDAO = await ethers.getContractFactory("LandDAO");
     const landDAO = await LandDAO.deploy(
