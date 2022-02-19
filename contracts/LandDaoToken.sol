@@ -2,15 +2,16 @@
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/finance/VestingWallet.sol";
-import "./LandOwner.sol";
+import "./LandOwnerManager.sol";
+import "./DlsNftOwnerManager.sol";
 
-contract LandDAO is ERC20, Ownable {
+contract LandDAO is ERC20Pausable, Ownable {
 
-    // TODO Add support for roles, make freezable, owner should not manage
+    // TODO Add support for roles, make pause-able, owner should not manage
     // TODO Make contact pause-able?
     // TODO Move un-claimable tokens to treasury directly
     // TODO remove storage vars
@@ -33,7 +34,8 @@ contract LandDAO is ERC20, Ownable {
     uint256 public startDate;
 
     // Land Owners
-    LandOwner landOwner;
+    LandOwnerManager landOwnerManager;
+    DlsNftOwnerManager dlsNftOwnerManager;
 
     // DLS DAO Data
     IERC20 public dlsDao;
@@ -44,10 +46,6 @@ contract LandDAO is ERC20, Ownable {
     address public treasury;
     bool public treasuryFrozen = false;
     uint256 remainingTreasurySupply = treasurySupply;
-
-    // DLS NFT Data
-    IERC721 public dlsNft;
-    mapping(uint256=>bool) private dlsNftOwnerClaimed;
 
     // Strategic Sales Data
     uint256 remainingStrategicSaleSupply = strategicSaleSupply;
@@ -64,9 +62,6 @@ contract LandDAO is ERC20, Ownable {
     bool public teamWalletFrozen = false;
 
     // EVENTS
-
-    // DLS NFSs
-    event DlsNftClaimed(address owner, uint256[] tokenIds, uint256 claimAmount);
 
     // DlsDao
     event DlsDaoDistributed(address dlsDao, uint256 amount);
@@ -99,11 +94,13 @@ contract LandDAO is ERC20, Ownable {
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) Ownable() {
         uint256 _startDate = block.timestamp;
         startDate = _startDate;
-        dlsNft = IERC721(dlsNftAddress);
-        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + dlsDaoSupply + dlsNftSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
-        landOwner = new LandOwner(IERC20(this), _startDate);
+
+        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + dlsDaoSupply + liquidityManagementSupply + treasurySupply + teamSupply + strategicSaleSupply;
+        landOwnerManager = new LandOwnerManager(IERC20(this), _startDate);
+        dlsNftOwnerManager = new DlsNftOwnerManager(IERC20(this), dlsNftAddress);
         _mint(address(this), totalToMinted);
-        _mint(address(landOwner), landOwnerSupply);
+        _mint(address(landOwnerManager), landOwnerSupply);
+        _mint(address(dlsNftOwnerManager), dlsNftSupply);
     }
 
     // LOGIC
@@ -160,24 +157,10 @@ contract LandDAO is ERC20, Ownable {
         emit TreasuryDistributed(treasury, amount);
     }
 
-    // DLS NFT Logic
-    function claimNftOwner(uint256[] memory tokenIds) external {
-        require(address(dlsNft) != address(0));
-        for (uint256 i=0; i<tokenIds.length; i++) {
-            uint256 tokenId = tokenIds[i];
-            require(!dlsNftOwnerClaimed[tokenId]);
-            require(dlsNft.ownerOf(tokenId) == msg.sender);
-            dlsNftOwnerClaimed[tokenId] = true;
-        }
-        uint256 amount = dlsNftSupply / 10_000 * tokenIds.length;
-        _transfer(address(this), msg.sender, amount);
-        emit DlsNftClaimed(msg.sender, tokenIds, amount);
-    }
-
     function distributeUnclaimedLandOwnerSupply() external onlyOwner{
         require(block.timestamp > startDate + 180 days);
-        uint256 remainingLandOwnerSupply = balanceOf(address(landOwner));
-        _transfer(address(landOwner), treasury, remainingLandOwnerSupply);
+        uint256 remainingLandOwnerSupply = balanceOf(address(landOwnerManager));
+        _transfer(address(landOwnerManager), treasury, remainingLandOwnerSupply);
         emit TreasuryDistributed(treasury, remainingLandOwnerSupply);
     }
 
