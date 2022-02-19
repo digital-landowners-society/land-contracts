@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const {BigNumber} = require("ethers");
+const { BigNumber } = require("ethers");
 
 describe("LandDAO", function () {
   it("Should return the total supply", async function () {

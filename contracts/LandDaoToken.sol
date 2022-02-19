@@ -126,7 +126,7 @@ contract LandDAO is ERC20, Ownable {
     }
 
     function distributeToDlsDao(uint256 amount) external {
-        require(address(dlsDao) != address(0));
+        require(address(dlsDao) != address(0), "DLS DAO address not set");
         require(amount <= remainingDlsDaoSupply);
         require(dlsDaoReleasableAmount() >= amount);
         _transfer(address(this), address(dlsDao), amount);
