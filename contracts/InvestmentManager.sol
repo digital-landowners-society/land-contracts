@@ -5,15 +5,22 @@ import "@openzeppelin/contracts/finance/VestingWallet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract StrategicSaleManager is Ownable {
+contract InvestmentManager is Ownable {
 
     uint256 public startDate;
     IERC20 public landDao;
     mapping(address=>VestingWallet[]) strategicSaleVestingMap;
+    address public investmentWallet;
+    uint256 investments;
+    bool public investmentWalletFrozen = false;
 
-    // Strategic Sale
     event StrategicSaleReleased(address sender, address beneficiary, uint256 amount);
     event StrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds);
+    event Received(address, uint256);
+    event Invested(address, uint256);
+    event InvestmentWithdrawn(address investmentWallet, uint256 amount);
+    event InvestmentWalletSet(address investmentWallet);
+    event InvestmentWalletFrozen();
 
     constructor(address landDaoOwner){
         landDao = IERC20(msg.sender);
@@ -54,5 +61,33 @@ contract StrategicSaleManager is Ownable {
             vestingWallets[i].release(address(this));
         }
         emit StrategicSaleReleased(msg.sender, beneficiary, 0);
+    }
+
+
+    // Payments
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+
+    function invest() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+
+    function freezeInvestmentWallet() public onlyOwner {
+        require(investmentWallet != address(0));
+        investmentWalletFrozen = true;
+        emit InvestmentWalletFrozen();
+    }
+
+    function setInvestmentWallet(address investmentWalletAddress) external onlyOwner {
+        require(!investmentWalletFrozen);
+        investmentWallet = investmentWalletAddress;
+        emit InvestmentWalletSet(investmentWalletAddress);
+    }
+
+    function investmentWithdraw(uint256 amount) public onlyOwner {
+        require(amount <= address(this).balance);
+        require(payable(investmentWallet).send(amount));
+        emit InvestmentWithdrawn(investmentWallet, amount);
     }
 }

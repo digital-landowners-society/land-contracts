@@ -8,8 +8,8 @@ import "./LandDaoVesting.sol";
 contract DlsDaoManager is Ownable {
 
     uint256 public startDate;
-    IERC20 public dlsDao;
     IERC20 public landDao;
+    IERC20 public dlsDao;
     uint256 public dlsDaoSupply = 90_000_000e18;
     bool public dlsDaoFrozen = false;
 
