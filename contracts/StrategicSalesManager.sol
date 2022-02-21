@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/finance/VestingWallet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract InvestmentManager is Ownable {
+contract StrategicSalesManager is Ownable {
 
     uint256 public startDate;
     IERC20 public landDao;

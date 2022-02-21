@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/finance/VestingWallet.sol";
 import "./LandOwnerManager.sol";
 import "./DlsNftOwnerManager.sol";
 import "./DlsDaoManager.sol";
-import "./InvestmentManager.sol";
+import "./StrategicSalesManager.sol";
 import "./TeamManager.sol";
 import "./TreasuryManager.sol";
 
@@ -38,7 +38,7 @@ contract LandDAO is ERC20Pausable, Ownable {
     LandOwnerManager public landOwnerManager;
     DlsNftOwnerManager public dlsNftOwnerManager;
     DlsDaoManager public dlsDaoManager;
-    InvestmentManager public investmentManager;
+    StrategicSalesManager public strategicSalesManager;
     TeamManager public teamManager;
     TreasuryManager public treasuryManager;
 
@@ -53,15 +53,18 @@ contract LandDAO is ERC20Pausable, Ownable {
         landOwnerManager = new LandOwnerManager();
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
         dlsDaoManager = new DlsDaoManager(msg.sender);
-        investmentManager = new InvestmentManager(msg.sender);
+        strategicSalesManager = new StrategicSalesManager(msg.sender);
         teamManager = new TeamManager(msg.sender);
         treasuryManager = new TreasuryManager(msg.sender);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
         _mint(address(dlsDaoManager), dlsDaoSupply);
-        _mint(address(investmentManager), strategicSaleSupply);
+        _mint(address(strategicSalesManager), strategicSaleSupply);
         _mint(address(teamManager), teamSupply);
         _mint(address(treasuryManager), treasurySupply);
     }
+
+    // TODO distribute unclaimed to treasury
+    // TODO
 }
