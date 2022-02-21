@@ -65,6 +65,11 @@ contract LandDAO is ERC20Pausable, Ownable {
         _mint(address(treasuryManager), treasurySupply);
     }
 
-    // TODO distribute unclaimed to treasury
-    // TODO
+    // TODO distribute unclaimed LANDs to treasury
+    // TODO distribute ETH to team / treasury
+    // TODO Implement investment Rewards
+    // TODO Implement Staking Rewards
+    // TODO Implement liquidity management supply functionality
+    // TODO Implement voting
+
 }
