@@ -49,8 +49,8 @@ contract TeamManager is Ownable {
     }
 
     function distributeTeamEthereum(uint256 amount) external onlyOwner {
-        require(teamWallet != address(0));
-        require(amount <= address(this).balance);
+        require(teamWallet != address(0), "Team address not set");
+        require(amount <= address(this).balance, "Amount exceeds balance");
         require(payable(teamWallet).send(amount));
         emit TeamEthereumDistributed(teamWallet, amount);
     }
