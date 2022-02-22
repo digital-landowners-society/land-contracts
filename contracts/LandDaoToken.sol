@@ -12,6 +12,7 @@ import "./DlsDaoManager.sol";
 import "./StrategicSalesManager.sol";
 import "./TeamManager.sol";
 import "./TreasuryManager.sol";
+import "./LiquidityManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
@@ -41,7 +42,7 @@ contract LandDAO is ERC20Pausable, Ownable {
     StrategicSalesManager public strategicSalesManager;
     TeamManager public teamManager;
     TreasuryManager public treasuryManager;
-
+    LiquidityManager public liquidityManager;
 
 
     // CONSTRUCTOR
@@ -49,13 +50,14 @@ contract LandDAO is ERC20Pausable, Ownable {
         uint256 _startDate = block.timestamp;
         startDate = _startDate;
 
-        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + liquidityManagementSupply;
+        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply;
         landOwnerManager = new LandOwnerManager(msg.sender);
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
         dlsDaoManager = new DlsDaoManager(msg.sender);
         strategicSalesManager = new StrategicSalesManager(msg.sender);
         teamManager = new TeamManager(msg.sender);
         treasuryManager = new TreasuryManager(msg.sender);
+        liquidityManager = new LiquidityManager(msg.sender);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
@@ -63,13 +65,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         _mint(address(strategicSalesManager), strategicSaleSupply);
         _mint(address(teamManager), teamSupply);
         _mint(address(treasuryManager), treasurySupply);
+        _mint(address(liquidityManager), liquidityManagementSupply);
     }
-
-    // TODO distribute unclaimed LANDs to treasury
-    // TODO distribute ETH to team / treasury
-    // TODO Implement investment Rewards
-    // TODO Implement Staking Rewards
-    // TODO Implement liquidity management supply functionality
-    // TODO Implement voting
 
 }
