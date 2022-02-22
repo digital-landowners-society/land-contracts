@@ -13,6 +13,7 @@ import "./StrategicSalesManager.sol";
 import "./TeamManager.sol";
 import "./TreasuryManager.sol";
 import "./LiquidityManager.sol";
+import "./PoolRewardsManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
@@ -25,7 +26,7 @@ contract LandDAO is ERC20Pausable, Ownable {
 
     // Supplies
     uint256 public landOwnerSupply = 90_000_000e18;
-    uint256 public investmentRewardsSupply = 340_000_000e18;
+    uint256 public poolRewardsSupply = 340_000_000e18;
     uint256 public stackingRewardsSupply = 100_000_000e18;
     uint256 public dlsDaoSupply = 90_000_000e18;
     uint256 public dlsNftSupply = 90_000_000e18;
@@ -43,6 +44,7 @@ contract LandDAO is ERC20Pausable, Ownable {
     TeamManager public teamManager;
     TreasuryManager public treasuryManager;
     LiquidityManager public liquidityManager;
+    PoolRewardsManager public poolRewardsManager;
 
 
     // CONSTRUCTOR
@@ -50,7 +52,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         uint256 _startDate = block.timestamp;
         startDate = _startDate;
 
-        uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply;
+        uint256 totalToMinted = stackingRewardsSupply;
         treasuryManager = new TreasuryManager(msg.sender);
         landOwnerManager = new LandOwnerManager(msg.sender, address(treasuryManager));
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
@@ -58,6 +60,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         strategicSalesManager = new StrategicSalesManager(msg.sender);
         teamManager = new TeamManager(msg.sender);
         liquidityManager = new LiquidityManager(msg.sender);
+        poolRewardsManager = new PoolRewardsManager(msg.sender);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
@@ -66,6 +69,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         _mint(address(teamManager), teamSupply);
         _mint(address(treasuryManager), treasurySupply);
         _mint(address(liquidityManager), liquidityManagementSupply);
+        _mint(address(poolRewardsManager), poolRewardsSupply);
     }
 
 }
