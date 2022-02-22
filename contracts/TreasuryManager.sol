@@ -40,9 +40,9 @@ contract TreasuryManager is Ownable {
     }
 
     function distributeTreasury(uint256 amount) external onlyOwner {
-        require(treasury != address(0));
-        require(amount <= landDao.balanceOf(address(this)));
-        require(treasuryReleasableAmount() >= amount);
+        require(treasury != address(0), "Treasury address not set");
+        require(amount <= landDao.balanceOf(address(this)), "Amount exceeds supply");
+        require(treasuryReleasableAmount() >= amount, "Amount more than releasable");
         landDao.transfer(treasury, amount);
         emit TreasuryDistributed(treasury, amount);
     }
