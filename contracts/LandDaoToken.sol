@@ -50,7 +50,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         startDate = _startDate;
 
         uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply + liquidityManagementSupply;
-        landOwnerManager = new LandOwnerManager();
+        landOwnerManager = new LandOwnerManager(msg.sender);
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
         dlsDaoManager = new DlsDaoManager(msg.sender);
         strategicSalesManager = new StrategicSalesManager(msg.sender);
