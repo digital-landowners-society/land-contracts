@@ -24,12 +24,22 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.4",
   networks: {
-    ropsten: {
-      url: process.env.ROPSTEN_URL || "",
+    rinkeby: {
+      url: process.env.RINKEBY_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    mainnet: {
+      url: process.env.MAINNET_URL,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    development: {
+      url: "http://127.0.0.1:8545/",
+      accounts: [process.env.LOCAL_PRIVATE_KEY],
+    },
   },
+  defaultNetwork: "development",
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
