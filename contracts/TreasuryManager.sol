@@ -47,11 +47,11 @@ contract TreasuryManager is Ownable {
         emit TreasuryDistributed(treasury, amount);
     }
 
-    function distributeUnclaimedLandOwnerSupply() external onlyOwner{
-        // TODO implement this!!!
-        require(block.timestamp > startDate + 180 days);
-        uint256 remainingLandOwnerSupply = landDao.balanceOf(address(this));
-        landDao.transfer(treasury, remainingLandOwnerSupply);
+    function distributeUnclaimedLandOwnerSupply(address landOwnerManagerAddress) external onlyOwner{
+        uint256 remainingLandOwnerSupply = landDao.balanceOf(landOwnerManagerAddress);
+        require(remainingLandOwnerSupply > 0);
+        require(landDao.allowance(landOwnerManagerAddress, address(this)) >= remainingLandOwnerSupply);
+        landDao.transferFrom(landOwnerManagerAddress, treasury, remainingLandOwnerSupply);
         emit TreasuryDistributed(treasury, remainingLandOwnerSupply);
     }
 }

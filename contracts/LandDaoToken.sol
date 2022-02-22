@@ -24,15 +24,15 @@ contract LandDAO is ERC20Pausable, Ownable {
     // STORAGE
 
     // Supplies
-    uint256 public landOwnerSupply =           90_000_000e18;
-    uint256 public investmentRewardsSupply =  340_000_000e18;
-    uint256 public stackingRewardsSupply =    100_000_000e18;
-    uint256 public dlsDaoSupply =              90_000_000e18;
-    uint256 public dlsNftSupply =              90_000_000e18;
+    uint256 public landOwnerSupply = 90_000_000e18;
+    uint256 public investmentRewardsSupply = 340_000_000e18;
+    uint256 public stackingRewardsSupply = 100_000_000e18;
+    uint256 public dlsDaoSupply = 90_000_000e18;
+    uint256 public dlsNftSupply = 90_000_000e18;
     uint256 public liquidityManagementSupply = 20_000_000e18;
-    uint256 public treasurySupply =           100_000_000e18;
-    uint256 public teamSupply =               120_000_000e18;
-    uint256 public strategicSaleSupply =       50_000_000e18;
+    uint256 public treasurySupply = 100_000_000e18;
+    uint256 public teamSupply = 120_000_000e18;
+    uint256 public strategicSaleSupply = 50_000_000e18;
     uint256 public startDate;
 
     // Land Owners
@@ -51,12 +51,12 @@ contract LandDAO is ERC20Pausable, Ownable {
         startDate = _startDate;
 
         uint256 totalToMinted = investmentRewardsSupply + stackingRewardsSupply;
-        landOwnerManager = new LandOwnerManager(msg.sender);
+        treasuryManager = new TreasuryManager(msg.sender);
+        landOwnerManager = new LandOwnerManager(msg.sender, address(treasuryManager));
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
         dlsDaoManager = new DlsDaoManager(msg.sender);
         strategicSalesManager = new StrategicSalesManager(msg.sender);
         teamManager = new TeamManager(msg.sender);
-        treasuryManager = new TreasuryManager(msg.sender);
         liquidityManager = new LiquidityManager(msg.sender);
         _mint(address(this), totalToMinted);
         _mint(address(landOwnerManager), landOwnerSupply);

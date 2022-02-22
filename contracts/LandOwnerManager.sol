@@ -11,15 +11,18 @@ contract LandOwnerManager is Ownable {
     IERC20 public landDao;
     mapping(address=>uint8) private landOwnerClaimed;
     bytes32 public merkleRoot;
+    address public treasuryManager;
 
     // Land Owners
     event MerkleRootChanged(bytes32 merkleRoot);
     event LandOwnerClaimed(address landOwner, uint256 amount, uint256 claimed);
+    event TreasuryDistributed(address treasury, uint256 amount);
 
-    constructor(address landDaoOwner)  {
+    constructor(address landDaoOwner, address treasuryManagerAddress)  {
         startDate = block.timestamp;
         landDao = IERC20(msg.sender);
         _transferOwnership(landDaoOwner);
+        treasuryManager = treasuryManagerAddress;
     }
 
     function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
@@ -52,5 +55,12 @@ contract LandOwnerManager is Ownable {
         require(landDao.balanceOf(address(this)) >= amount);
         landDao.transfer(msg.sender, amount);
         emit LandOwnerClaimed(msg.sender, amount, claimed);
+    }
+
+    function allowTransferringUnclaimedTokens() public onlyOwner {
+        require(block.timestamp > startDate + 180 days);
+        uint256 remainingLandOwnerSupply = landDao.balanceOf(address(this));
+        landDao.approve(treasuryManager, remainingLandOwnerSupply);
+        emit TreasuryDistributed(treasuryManager, remainingLandOwnerSupply);
     }
 }
