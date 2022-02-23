@@ -46,6 +46,8 @@ contract LandDAO is ERC20Pausable, Ownable {
     LiquidityManager public liquidityManager;
     PoolRewardsManager public poolRewardsManager;
 
+    event Received(address sender, uint256 amount);
+    event EthereumDistributed(address sender, uint256 amount);
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) Ownable() {
@@ -72,4 +74,19 @@ contract LandDAO is ERC20Pausable, Ownable {
         _mint(address(poolRewardsManager), poolRewardsSupply);
     }
 
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+
+    function distributeTeamEthereum(uint256 amount) external onlyOwner {
+        require(amount <= address(this).balance, "Amount exceeds balance");
+        require(payable(address(teamManager)).send(amount));
+        emit EthereumDistributed(address(teamManager), amount);
+    }
+
+    function distributeInvestmentEthereum(uint256 amount) external onlyOwner {
+        require(amount <= address(this).balance, "Amount exceeds balance");
+        require(payable(address(treasuryManager)).send(amount));
+        emit EthereumDistributed(address(treasuryManager), amount);
+    }
 }

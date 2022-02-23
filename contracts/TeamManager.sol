@@ -17,11 +17,16 @@ contract TeamManager is Ownable {
     event TeamTokensDistributed(address teamWallet,uint amount);
     event TeamWalletSet(address teamWallet);
     event TeamWalletFrozen();
+    event Received(address sender, uint256 amount);
 
     constructor(address landDaoOwner){
         landDao = IERC20(msg.sender);
         _transferOwnership(landDaoOwner);
         startDate = block.timestamp;
+    }
+
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
 
     function freezeTeamWallet() public onlyOwner {

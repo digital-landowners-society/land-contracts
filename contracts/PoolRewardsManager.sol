@@ -40,7 +40,7 @@ contract PoolRewardsManager is Ownable {
     }
 
     function distributePoolRewards(uint256 amount) external onlyOwner {
-        require(teamWallet != address(0), "Team address not set");
+        require(poolRewardsWallet != address(0), "Team address not set");
         require(amount <= landDao.balanceOf(address(this)), "Amount exceeds supply");
         require(poolRewardsReleasableAmount() >= amount, "Amount more than releasable");
         landDao.transfer(poolRewardsWallet, amount);
