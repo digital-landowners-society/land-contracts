@@ -18,13 +18,6 @@ import "./StackingManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
-    // TODO Add support for roles, make pause-able, owner should not manage
-    // TODO remove storage vars
-    // TODO use useDapp
-    // TODO use Mulitcall
-
-    // STORAGE
-
     // Supplies
     uint256 public landOwnerSupply = 90_000_000e18;
     uint256 public poolRewardsSupply = 340_000_000e18;
