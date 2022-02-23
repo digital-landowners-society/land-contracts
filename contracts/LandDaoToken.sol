@@ -14,6 +14,7 @@ import "./TeamManager.sol";
 import "./TreasuryManager.sol";
 import "./LiquidityManager.sol";
 import "./PoolRewardsManager.sol";
+import "./StackingManager.sol";
 
 contract LandDAO is ERC20Pausable, Ownable {
 
@@ -34,7 +35,6 @@ contract LandDAO is ERC20Pausable, Ownable {
     uint256 public treasurySupply = 100_000_000e18;
     uint256 public teamSupply = 120_000_000e18;
     uint256 public strategicSaleSupply = 50_000_000e18;
-    uint256 public startDate;
 
     // Land Owners
     LandOwnerManager public landOwnerManager;
@@ -45,16 +45,13 @@ contract LandDAO is ERC20Pausable, Ownable {
     TreasuryManager public treasuryManager;
     LiquidityManager public liquidityManager;
     PoolRewardsManager public poolRewardsManager;
+    StackingManager public stackingManager;
 
     event Received(address sender, uint256 amount);
     event EthereumDistributed(address sender, uint256 amount);
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) Ownable() {
-        uint256 _startDate = block.timestamp;
-        startDate = _startDate;
-
-        uint256 totalToMinted = stackingRewardsSupply;
         treasuryManager = new TreasuryManager(msg.sender);
         landOwnerManager = new LandOwnerManager(msg.sender, address(treasuryManager));
         dlsNftOwnerManager = new DlsNftOwnerManager(dlsNftAddress);
@@ -63,7 +60,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         teamManager = new TeamManager(msg.sender);
         liquidityManager = new LiquidityManager(msg.sender);
         poolRewardsManager = new PoolRewardsManager(msg.sender);
-        _mint(address(this), totalToMinted);
+        stackingManager = new StackingManager(msg.sender);
         _mint(address(landOwnerManager), landOwnerSupply);
         _mint(address(dlsNftOwnerManager), dlsNftSupply);
         _mint(address(dlsDaoManager), dlsDaoSupply);
@@ -72,6 +69,7 @@ contract LandDAO is ERC20Pausable, Ownable {
         _mint(address(treasuryManager), treasurySupply);
         _mint(address(liquidityManager), liquidityManagementSupply);
         _mint(address(poolRewardsManager), poolRewardsSupply);
+        _mint(address(stackingManager), stackingRewardsSupply);
     }
 
     receive() external payable {
