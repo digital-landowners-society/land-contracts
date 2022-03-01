@@ -14,16 +14,16 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const LandDAO = await hre.ethers.getContractFactory("LandDAO");
-  const landDAO = await LandDAO.deploy(
-    "TestDAO",
-    "TEST",
-    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-  );
+  await hre.run("verify:verify", {
+    address: "0x528cCC328ed9bC4e380Dc70d2616814B15a7FB63",
+    constructorArguments: [
+      "TestDAO",
+      "TEST",
+      "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
+    ],
+  });
 
-  await landDAO.deployed();
-
-  console.log("Greeter deployed to:", landDAO.address);
+  console.log("Source Verified");
 }
 
 // We recommend this pattern to be able to use async/await everywhere
