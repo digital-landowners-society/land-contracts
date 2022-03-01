@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20VotesComp.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LandStacking is ERC20, ERC20Permit, ERC20Votes, Ownable {
+contract LandStacking is ERC20, ERC20Permit, ERC20VotesComp, Ownable {
     IERC20 public landToken;
 
     uint public rewardRate = 30;
