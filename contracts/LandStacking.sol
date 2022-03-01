@@ -5,9 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LandStacking is ERC20Pausable, Ownable {
+contract LandStacking is ERC20, ERC20Permit, ERC20Votes, Ownable {
     IERC20 public landToken;
 
     uint public rewardRate = 30;
@@ -22,7 +23,7 @@ contract LandStacking is ERC20Pausable, Ownable {
 
     constructor(string memory name_, string memory symbol_, address _landToken)
     ERC20(name_, symbol_)
-    Ownable()
+    ERC20Permit(name_)
     {
         landToken = IERC20(_landToken);
     }
@@ -64,5 +65,26 @@ contract LandStacking is ERC20Pausable, Ownable {
         uint reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
         landToken.transfer(msg.sender, reward);
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+    internal
+    override(ERC20, ERC20Votes)
+    {
+        super._afterTokenTransfer(from, to, amount);
+    }
+
+    function _mint(address to, uint256 amount)
+    internal
+    override(ERC20, ERC20Votes)
+    {
+        super._mint(to, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+    internal
+    override(ERC20, ERC20Votes)
+    {
+        super._burn(account, amount);
     }
 }
