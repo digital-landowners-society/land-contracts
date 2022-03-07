@@ -1,12 +1,12 @@
-const {ethers} = require("hardhat");
+const { ethers } = require("hardhat");
 const utils = ethers.utils;
-const {MerkleTree} = require("merkletreejs");
+const { MerkleTree } = require("merkletreejs");
 const hash = require("keccak256");
 
 const getProofs = async (index, amount) => {
   const accounts = await ethers.getSigners();
   const raw = accounts.map((x) => {
-    return {address: x.address, amount: amount};
+    return { address: x.address, amount: amount };
   });
   const data = raw.map((x) => {
     return utils.solidityPack(["address", "uint"], [x.address, x.amount]);
@@ -19,7 +19,7 @@ const getProofs = async (index, amount) => {
   const item = data[index];
   const leaf = hash(item);
   const proof = tree.getHexProof(leaf);
-  return {root: root, proof: proof, signer: accounts[index]};
+  return { root: root, proof: proof, signer: accounts[index] };
 };
 
 const deployLandDao = async () => {
