@@ -19,9 +19,8 @@ contract TeamManager is Ownable {
     event TeamWalletFrozen();
     event Received(address sender, uint256 amount);
 
-    constructor(address landDaoOwner){
-        landDao = IERC20(msg.sender);
-        _transferOwnership(landDaoOwner);
+    constructor(address landDaoAddress) Ownable() {
+        landDao = IERC20(landDaoAddress);
         startDate = block.timestamp;
     }
 

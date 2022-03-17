@@ -22,10 +22,9 @@ contract StrategicSalesManager is Ownable {
     event InvestmentWalletSet(address investmentWallet);
     event InvestmentWalletFrozen();
 
-    constructor(address landDaoOwner){
-        landDao = IERC20(msg.sender);
+    constructor(address landDaoAddress) Ownable() {
+        landDao = IERC20(landDaoAddress);
         startDate = block.timestamp;
-        _transferOwnership(landDaoOwner);
     }
 
     // Strategic Sale

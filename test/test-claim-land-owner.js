@@ -3,6 +3,21 @@ const utils = ethers.utils;
 const { MerkleTree } = require("merkletreejs");
 const hash = require("keccak256");
 
+const deployLandDao = async () => {
+  const landDaoFactory = await ethers.getContractFactory("LandDAO");
+  const landDao = await landDaoFactory.deploy("LandDAO", "LAND");
+  await landDao.deployed();
+  return landDao;
+};
+
+const getLandOwnerManager = async (landDao) => {
+  const factory = await ethers.getContractFactory("LandOwnerManager");
+  const contract = await factory.deploy(landDao.address);
+  await contract.deployed();
+  await landDao.sendTokens("landOwners", contract.address);
+  return contract;
+};
+
 const getProofs = async (index, amount) => {
   const accounts = await ethers.getSigners();
   const raw = accounts.map((x) => {
@@ -22,24 +37,6 @@ const getProofs = async (index, amount) => {
   return { root: root, proof: proof, signer: accounts[index] };
 };
 
-const deployLandDao = async () => {
-  const LandDao = await ethers.getContractFactory("LandDAO");
-  const landDao = await LandDao.deploy(
-    "LandDAO",
-    "LAND",
-    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-  );
-  await landDao.deployed();
-  return landDao;
-};
-
-const getLandOwnerManager = async (landDao) => {
-  const landOwnerManagerAddress = await landDao.landOwnerManager();
-  const landOwnerManager = await ethers.getContractFactory(
-    "LandOwnerManager"
-  );
-  return landOwnerManager.attach(landOwnerManagerAddress);
-};
 
 describe("LandDAO Claim to land owners", function () {
   it("Should set merkle root", async function () {

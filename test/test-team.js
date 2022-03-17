@@ -3,20 +3,18 @@ const { ethers, network } = require("hardhat");
 const { BigNumber } = require("ethers");
 
 const deployLandDao = async () => {
-  const LandDao = await ethers.getContractFactory("LandDAO");
-  const landDao = await LandDao.deploy(
-    "LandDAO",
-    "LAND",
-    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-  );
+  const landDaoFactory = await ethers.getContractFactory("LandDAO");
+  const landDao = await landDaoFactory.deploy("LandDAO", "LAND");
   await landDao.deployed();
   return landDao;
 };
 
 const getTeam = async (landDao) => {
-  const teamManagerAddress = await landDao.teamManager();
-  const teamManager = await ethers.getContractFactory("TeamManager");
-  return teamManager.attach(teamManagerAddress);
+  const factory = await ethers.getContractFactory("TeamManager");
+  const teamManager = await factory.deploy(landDao.address);
+  await teamManager.deployed();
+  await landDao.sendTokens("team", teamManager.address);
+  return teamManager;
 };
 
 describe("LandDAO Distribute to Team", function () {

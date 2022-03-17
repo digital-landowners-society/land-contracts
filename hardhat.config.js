@@ -42,8 +42,8 @@ module.exports = {
   // defaultNetwork: "development",
   gasReporter: {
     enabled: true,
-    currency: "ETH",
-    gasPrice: 100,
+    currency: "USD",
+    coinmarketcap: "63127161-7293-4c3f-82f2-189677b67ea0",
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

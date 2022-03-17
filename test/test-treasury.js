@@ -3,20 +3,18 @@ const { ethers, network } = require("hardhat");
 const { BigNumber } = require("ethers");
 
 const deployLandDao = async () => {
-  const LandDao = await ethers.getContractFactory("LandDAO");
-  const landDao = await LandDao.deploy(
-    "LandDAO",
-    "LAND",
-    "0x3f33eea734b01ec9e9bd1b44a3eb80c36ba585be"
-  );
+  const landDaoFactory = await ethers.getContractFactory("LandDAO");
+  const landDao = await landDaoFactory.deploy("LandDAO", "LAND");
   await landDao.deployed();
   return landDao;
 };
 
 const getTreasury = async (landDao) => {
-  const treasuryManagerAddress = await landDao.treasuryManager();
-  const treasuryManager = await ethers.getContractFactory("TreasuryManager");
-  return treasuryManager.attach(treasuryManagerAddress);
+  const factory = await ethers.getContractFactory("TreasuryManager");
+  const treasuryManager = await factory.deploy(landDao.address);
+  await treasuryManager.deployed();
+  await landDao.sendTokens("treasury", treasuryManager.address);
+  return treasuryManager;
 };
 
 describe("LandDAO Distribute to Treasury", function () {

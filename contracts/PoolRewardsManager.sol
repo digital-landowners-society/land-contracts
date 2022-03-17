@@ -17,9 +17,8 @@ contract PoolRewardsManager is Ownable {
     event PoolRewardsWalletSet(address poolRewardsWallet);
     event PoolRewardsWalletFrozen();
 
-    constructor(address landDaoOwner){
-        landDao = IERC20(msg.sender);
-        _transferOwnership(landDaoOwner);
+    constructor(address landDaoAddress) Ownable() {
+        landDao = IERC20(landDaoAddress);
         startDate = block.timestamp;
     }
 

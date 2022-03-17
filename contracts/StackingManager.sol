@@ -19,10 +19,9 @@ contract StackingManager is Ownable {
     event LiquidityPoolStackingWalletFrozen();
     event LiquidityPoolStackingWalletSet(address liquidityPoolStackingWalletAddress);
 
-    constructor(address landDaoOwner){
-        landDao = IERC20(msg.sender);
+    constructor(address landDaoAddress) Ownable() {
+        landDao = IERC20(landDaoAddress);
         startDate = block.timestamp;
-        _transferOwnership(landDaoOwner);
     }
 
     function freezeSingleStackingWallet() public onlyOwner {
