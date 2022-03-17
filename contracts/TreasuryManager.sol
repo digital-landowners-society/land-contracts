@@ -52,14 +52,6 @@ contract TreasuryManager is Ownable {
         emit TreasuryDistributed(treasuryWallet, amount);
     }
 
-    function distributeUnclaimedLandOwnerSupply(address landOwnerManagerAddress) external onlyOwner{
-        uint256 remainingLandOwnerSupply = landDao.balanceOf(landOwnerManagerAddress);
-        require(remainingLandOwnerSupply > 0);
-        require(landDao.allowance(landOwnerManagerAddress, address(this)) >= remainingLandOwnerSupply);
-        landDao.transferFrom(landOwnerManagerAddress, treasuryWallet, remainingLandOwnerSupply);
-        emit TreasuryDistributed(treasuryWallet, remainingLandOwnerSupply);
-    }
-
     function distributeTreasuryEthereum(uint256 amount) external onlyOwner {
         require(treasuryWallet != address(0), "Team address not set");
         require(amount <= address(this).balance, "Amount exceeds balance");
