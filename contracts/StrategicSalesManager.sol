@@ -62,7 +62,6 @@ contract StrategicSalesManager is Ownable {
         emit StrategicSaleReleased(msg.sender, beneficiary, 0);
     }
 
-
     // Payments
     receive() external payable {
         emit Received(msg.sender, msg.value);

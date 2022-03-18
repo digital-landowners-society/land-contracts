@@ -26,7 +26,7 @@ describe("LandDAO Distribute to Treasury", function () {
     const landDao = await deployLandDao();
     const treasuryManager = await getTreasury(landDao);
     await expect(treasuryManager.distributeTreasury(1)).to.be.revertedWith(
-      "Treasury address not set"
+      "TreasuryManager: treasury address not set"
     );
   });
 
@@ -37,7 +37,7 @@ describe("LandDAO Distribute to Treasury", function () {
     await treasuryManager.setTreasury(owner.address);
     await expect(
       treasuryManager.distributeTreasury(BigNumber.from(10).pow(27))
-    ).to.be.revertedWith("Amount exceeds supply");
+    ).to.be.revertedWith("TreasuryManager: amount exceeds supply");
   });
 
   it("Should throw exception when Treasury amount more than releasable", async function () {
@@ -46,7 +46,7 @@ describe("LandDAO Distribute to Treasury", function () {
     const [owner] = await ethers.getSigners();
     await treasuryManager.setTreasury(owner.address);
     await expect(treasuryManager.distributeTreasury(1)).to.be.revertedWith(
-      "Amount more than releasable"
+      "TreasuryManager: amount more than releasable"
     );
   });
 
@@ -92,7 +92,7 @@ describe("LandDAO Distribute to Treasury", function () {
     expect(balance).to.equal(oneDayAmount);
     await expect(
       treasuryManager.distributeTreasury(oneDayAmount)
-    ).to.be.revertedWith("Amount more than releasable");
+    ).to.be.revertedWith("TreasuryManager: amount more than releasable");
     await network.provider.send("evm_increaseTime", [nextDay]);
     await network.provider.send("evm_mine");
     await treasuryManager.distributeTreasury(oneDayAmount);
@@ -100,6 +100,6 @@ describe("LandDAO Distribute to Treasury", function () {
     expect(balance2).to.equal(oneDayAmount.mul(2));
     await expect(
       treasuryManager.distributeTreasury(oneDayAmount)
-    ).to.be.revertedWith("Amount more than releasable");
+    ).to.be.revertedWith("TreasuryManager: amount more than releasable");
   });
 });

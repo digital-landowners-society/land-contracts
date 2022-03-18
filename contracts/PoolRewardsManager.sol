@@ -11,11 +11,8 @@ contract PoolRewardsManager is Ownable {
     address public poolRewardsWallet;
     bool public poolRewardsWalletFrozen = false;
     uint256 public poolRewardsSupply = 340_000_000e18;
+    uint256 public poolRewardsReleased;
     uint256 public startDate;
-
-    event PoolRewardsDistributed(address poolRewardsWallet,uint amount);
-    event PoolRewardsWalletSet(address poolRewardsWallet);
-    event PoolRewardsWalletFrozen();
 
     constructor(address landDaoAddress) Ownable() {
         landDao = IERC20(landDaoAddress);
@@ -23,26 +20,24 @@ contract PoolRewardsManager is Ownable {
     }
 
     function freezePoolRewardsWallet() public onlyOwner {
-        require(poolRewardsWallet != address(0));
+        require(poolRewardsWallet != address(0), "PoolRewardsManager: wallet address is mandatory");
         poolRewardsWalletFrozen = true;
-        emit PoolRewardsWalletFrozen();
     }
 
     function setPoolRewardsWallet(address poolRewardsWalletAddress) external onlyOwner {
-        require(!poolRewardsWalletFrozen, "Pool rewards wallet is frozen");
+        require(!poolRewardsWalletFrozen, "PoolRewardsManager: pool rewards wallet is frozen");
         poolRewardsWallet = poolRewardsWalletAddress;
-        emit PoolRewardsWalletSet(poolRewardsWallet);
     }
 
     function poolRewardsReleasableAmount() public view returns (uint256) {
-        return LandDaoVesting.vestingSchedule(poolRewardsSupply, startDate, block.timestamp) - (poolRewardsSupply - landDao.balanceOf(address(this)));
+        return LandDaoVesting.vestingSchedule(poolRewardsSupply, startDate, block.timestamp) - poolRewardsReleased;
     }
 
     function distributePoolRewards(uint256 amount) external onlyOwner {
-        require(poolRewardsWallet != address(0), "Pool rewards wallet address not set");
-        require(amount <= landDao.balanceOf(address(this)), "Amount exceeds supply");
-        require(poolRewardsReleasableAmount() >= amount, "Amount more than releasable");
+        require(poolRewardsWallet != address(0), "PoolRewardsManager: pool rewards wallet address not set");
+        require(amount <= landDao.balanceOf(address(this)), "PoolRewardsManager: mount exceeds supply");
+        require(poolRewardsReleasableAmount() >= amount, "PoolRewardsManager: amount more than releasable");
         landDao.transfer(poolRewardsWallet, amount);
-        emit PoolRewardsDistributed(poolRewardsWallet, amount);
+        poolRewardsReleased += amount;
     }
 }

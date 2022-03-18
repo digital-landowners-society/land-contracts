@@ -12,12 +12,7 @@ contract TreasuryManager is Ownable {
     address public treasuryWallet;
     bool public treasuryFrozen = false;
     uint256 public treasurySupply = 100_000_000e18;
-
-    event TreasuryDistributed(address treasury, uint256 amount);
-    event TreasuryEthereumDistributed(address treasury, uint256 amount);
-    event TreasurySet(address treasury);
-    event TreasuryFrozen();
-    event Received(address sender, uint256 amount);
+    uint256 public treasuryReleased;
 
     constructor(address landDaoAddress) Ownable() {
         landDao = IERC20(landDaoAddress);
@@ -25,37 +20,33 @@ contract TreasuryManager is Ownable {
     }
 
     receive() external payable {
-        emit Received(msg.sender, msg.value);
     }
 
     function freezeTreasury() external onlyOwner {
         require(treasuryWallet != address(0));
         treasuryFrozen = true;
-        emit TreasuryFrozen();
     }
 
     function treasuryReleasableAmount() public view returns (uint256) {
-        return LandDaoVesting.vestingSchedule(treasurySupply, startDate, block.timestamp) - (treasurySupply - landDao.balanceOf(address(this)));
+        return LandDaoVesting.vestingSchedule(treasurySupply, startDate, block.timestamp) - treasuryReleased;
     }
 
     function setTreasury(address treasuryWalletAddress) external onlyOwner {
-        require(!treasuryFrozen);
+        require(!treasuryFrozen, "TreasuryManager: wallet address is mandatory");
         treasuryWallet = treasuryWalletAddress;
-        emit TreasurySet(treasuryWalletAddress);
     }
 
     function distributeTreasury(uint256 amount) external onlyOwner {
-        require(treasuryWallet != address(0), "Treasury address not set");
-        require(amount <= landDao.balanceOf(address(this)), "Amount exceeds supply");
-        require(treasuryReleasableAmount() >= amount, "Amount more than releasable");
+        require(treasuryWallet != address(0), "TreasuryManager: treasury address not set");
+        require(amount <= landDao.balanceOf(address(this)), "TreasuryManager: amount exceeds supply");
+        require(treasuryReleasableAmount() >= amount, "TreasuryManager: amount more than releasable");
         landDao.transfer(treasuryWallet, amount);
-        emit TreasuryDistributed(treasuryWallet, amount);
+        treasuryReleased += amount;
     }
 
     function distributeTreasuryEthereum(uint256 amount) external onlyOwner {
-        require(treasuryWallet != address(0), "Team address not set");
-        require(amount <= address(this).balance, "Amount exceeds balance");
+        require(treasuryWallet != address(0), "TreasuryManager: treasury address not set");
+        require(amount <= address(this).balance, "TreasuryManager: amount exceeds balance");
         require(payable(treasuryWallet).send(amount));
-        emit TreasuryEthereumDistributed(treasuryWallet, amount);
     }
 }

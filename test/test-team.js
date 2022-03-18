@@ -26,7 +26,7 @@ describe("LandDAO Distribute to Team", function () {
     const landDao = await deployLandDao();
     const teamManager = await getTeam(landDao);
     await expect(teamManager.distributeTeam(1)).to.be.revertedWith(
-      "Team address not set"
+      "TeamManager: team address not set"
     );
   });
 
@@ -37,7 +37,7 @@ describe("LandDAO Distribute to Team", function () {
     await teamManager.setTeamWallet(owner.address);
     await expect(
       teamManager.distributeTeam(BigNumber.from(10).pow(27))
-    ).to.be.revertedWith("Amount exceeds supply");
+    ).to.be.revertedWith("TeamManager: amount exceeds supply");
   });
 
   it("Should throw exception when Team amount more than releasable", async function () {
@@ -46,7 +46,7 @@ describe("LandDAO Distribute to Team", function () {
     const [owner] = await ethers.getSigners();
     await teamManager.setTeamWallet(owner.address);
     await expect(teamManager.distributeTeam(1)).to.be.revertedWith(
-      "Amount more than releasable"
+      "TeamManager: amount more than releasable"
     );
   });
 
@@ -91,7 +91,7 @@ describe("LandDAO Distribute to Team", function () {
     const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(oneDayAmount);
     await expect(teamManager.distributeTeam(oneDayAmount)).to.be.revertedWith(
-      "Amount more than releasable"
+      "TeamManager: amount more than releasable"
     );
     await network.provider.send("evm_increaseTime", [nextDay]);
     await network.provider.send("evm_mine");
@@ -99,7 +99,7 @@ describe("LandDAO Distribute to Team", function () {
     const balance2 = await landDao.balanceOf(owner.address);
     expect(balance2).to.equal(oneDayAmount.mul(2));
     await expect(teamManager.distributeTeam(oneDayAmount)).to.be.revertedWith(
-      "Amount more than releasable"
+      "TeamManager: amount more than releasable"
     );
   });
 });
