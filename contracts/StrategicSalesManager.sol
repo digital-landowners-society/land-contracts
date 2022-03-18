@@ -28,7 +28,9 @@ contract StrategicSalesManager is Ownable {
     }
 
     // Strategic Sale
-    function doStrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds) public onlyOwner {
+    function doStrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds)
+    external
+    onlyOwner {
         require(beneficiary != address(0));
         require(amount <= landDao.balanceOf(address(this)));
         require(startTimestamp > startDate);
@@ -38,14 +40,14 @@ contract StrategicSalesManager is Ownable {
         emit StrategicSaleVesting(beneficiary, amount, startTimestamp, durationSeconds);
     }
 
-    function doStrategicSaleDirect(address beneficiary, uint256 amount) public onlyOwner {
+    function doStrategicSaleDirect(address beneficiary, uint256 amount) external onlyOwner {
         require(beneficiary != address(0));
         require(amount <= landDao.balanceOf(address(this)));
         landDao.transfer(beneficiary, amount);
         emit StrategicSaleReleased(msg.sender, beneficiary, amount);
     }
 
-    function doStrategicSaleReleaseOwner(address beneficiary) public onlyOwner {
+    function doStrategicSaleReleaseOwner(address beneficiary) external onlyOwner {
         strategicSaleRelease(beneficiary);
     }
 
@@ -71,7 +73,7 @@ contract StrategicSalesManager is Ownable {
         emit Received(msg.sender, msg.value);
     }
 
-    function freezeInvestmentWallet() public onlyOwner {
+    function freezeInvestmentWallet() external onlyOwner {
         require(investmentWallet != address(0));
         investmentWalletFrozen = true;
         emit InvestmentWalletFrozen();
@@ -83,8 +85,7 @@ contract StrategicSalesManager is Ownable {
         emit InvestmentWalletSet(investmentWalletAddress);
     }
 
-    function investmentWithdraw(uint256 amount) public onlyOwner {
-        require(amount <= address(this).balance);
+    function investmentWithdraw(uint256 amount) external onlyOwner {
         require(payable(investmentWallet).send(amount));
         emit InvestmentWithdrawn(investmentWallet, amount);
     }

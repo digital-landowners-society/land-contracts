@@ -29,7 +29,7 @@ contract TeamManager is Ownable {
         emit Received(msg.sender, msg.value);
     }
 
-    function freezeTeamWallet() public onlyOwner {
+    function freezeTeamWallet() external onlyOwner {
         require(teamWallet != address(0), "TeamManager: wallet address is mandatory");
         teamWalletFrozen = true;
         emit TeamWalletFrozen();
@@ -47,7 +47,6 @@ contract TeamManager is Ownable {
 
     function distributeTeam(uint256 amount) external onlyOwner {
         require(teamWallet != address(0), "TeamManager: team address not set");
-        require(amount <= landDao.balanceOf(address(this)), "TeamManager: amount exceeds supply");
         require(teamReleasableAmount() >= amount, "TeamManager: amount more than releasable");
         landDao.transfer(teamWallet, amount);
         teamReleased += amount;
@@ -56,7 +55,6 @@ contract TeamManager is Ownable {
 
     function distributeTeamEthereum(uint256 amount) external onlyOwner {
         require(teamWallet != address(0), "TeamManager: team address not set");
-        require(amount <= address(this).balance, "TeamManager: amount exceeds balance");
         require(payable(teamWallet).send(amount));
         emit TeamEthereumDistributed(teamWallet, amount);
     }

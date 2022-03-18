@@ -19,7 +19,7 @@ contract PoolRewardsManager is Ownable {
         startDate = block.timestamp;
     }
 
-    function freezePoolRewardsWallet() public onlyOwner {
+    function freezePoolRewardsWallet() external onlyOwner {
         require(poolRewardsWallet != address(0), "PoolRewardsManager: wallet address is mandatory");
         poolRewardsWalletFrozen = true;
     }
@@ -35,7 +35,6 @@ contract PoolRewardsManager is Ownable {
 
     function distributePoolRewards(uint256 amount) external onlyOwner {
         require(poolRewardsWallet != address(0), "PoolRewardsManager: pool rewards wallet address not set");
-        require(amount <= landDao.balanceOf(address(this)), "PoolRewardsManager: mount exceeds supply");
         require(poolRewardsReleasableAmount() >= amount, "PoolRewardsManager: amount more than releasable");
         landDao.transfer(poolRewardsWallet, amount);
         poolRewardsReleased += amount;

@@ -37,7 +37,7 @@ describe("LandDAO Distribute to Treasury", function () {
     await treasuryManager.setTreasury(owner.address);
     await expect(
       treasuryManager.distributeTreasury(BigNumber.from(10).pow(27))
-    ).to.be.revertedWith("TreasuryManager: amount exceeds supply");
+    ).to.be.revertedWith("TreasuryManager: amount more than releasable");
   });
 
   it("Should throw exception when Treasury amount more than releasable", async function () {

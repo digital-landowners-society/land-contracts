@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract LandDAO is ERC20, ERC20Permit, Ownable {
-    IERC721 public dlsNft;
-    uint256 public startDate;
+    IERC721 public immutable dlsNft;
+    uint256 public immutable startDate;
     bytes32 public merkleRoot;
     mapping(string => uint256) public supplyData;
-    mapping(uint256=>bool) private dlsNftOwnerClaimed;
-    mapping(address=>uint8) private landOwnerClaimed;
+    mapping(uint256=>bool) public dlsNftOwnerClaimed;
+    mapping(address=>uint8) public landOwnerClaimed;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
@@ -30,7 +30,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         supplyData["strategicSale"] = 50_000_000e18;
     }
 
-    function sendTokens(string memory supplyName, address contractAddress) public onlyOwner {
+    function sendTokens(string memory supplyName, address contractAddress) external onlyOwner {
         require(contractAddress!=address(0), "LandDao: Should sent to someone");
         uint256 supply = supplyData[supplyName];
         require(supply > 0, "LandDao: not eligible");
@@ -80,7 +80,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         _transfer(address(this), msg.sender, amount);
     }
 
-    function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         require(merkleRoot == bytes32(0), "LandDAO: Merkle root already set");
         merkleRoot = _merkleRoot;
     }

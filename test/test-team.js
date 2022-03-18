@@ -37,7 +37,7 @@ describe("LandDAO Distribute to Team", function () {
     await teamManager.setTeamWallet(owner.address);
     await expect(
       teamManager.distributeTeam(BigNumber.from(10).pow(27))
-    ).to.be.revertedWith("TeamManager: amount exceeds supply");
+    ).to.be.revertedWith("TeamManager: amount more than releasable");
   });
 
   it("Should throw exception when Team amount more than releasable", async function () {
