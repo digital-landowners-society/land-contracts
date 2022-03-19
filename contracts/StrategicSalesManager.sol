@@ -42,7 +42,7 @@ contract StrategicSalesManager is Ownable {
 
     function strategicSaleRelease(address beneficiary) internal {
         VestingWallet[] memory vestingWallets = strategicSaleVestingMap[beneficiary];
-        require(vestingWallets.length > 0);
+        require(vestingWallets.length > 0, "StrategicSalesManager: not eligible");
         for (uint256 i=0; i<vestingWallets.length; i++) {
             vestingWallets[i].release(address(landDao));
         }
