@@ -102,4 +102,28 @@ describe("LandDAO Distribute to Team", function () {
       "TeamManager: amount more than releasable"
     );
   });
+
+  it("Should distribute ETH", async function () {
+    const landDao = await deployLandDao();
+    const ether = ethers.utils.parseEther("1");
+    const teamManager = await getTeam(landDao);
+    const [owner, addr1] = await ethers.getSigners();
+    await teamManager.setTeamWallet(addr1.address);
+    await owner.sendTransaction({ to: teamManager.address, value: ether });
+    const balance = await teamManager.provider.getBalance(addr1.address);
+    await teamManager.distributeTeamEthereum(ether);
+    const newBalance = await teamManager.provider.getBalance(addr1.address);
+    expect(newBalance).to.equal(balance.add(ether));
+  });
+
+  it("Should freeze wallet address", async function () {
+    const landDao = await deployLandDao();
+    const teamManager = await getTeam(landDao);
+    const [owner, addr1] = await ethers.getSigners();
+    await teamManager.setTeamWallet(addr1.address);
+    await teamManager.freezeTeamWallet();
+    await expect(teamManager.setTeamWallet(owner.address)).to.be.revertedWith(
+      "TeamManager: team wallet is frozen"
+    );
+  });
 });
