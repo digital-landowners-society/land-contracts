@@ -102,4 +102,28 @@ describe("LandDAO Distribute to Treasury", function () {
       treasuryManager.distributeTreasury(oneDayAmount)
     ).to.be.revertedWith("TreasuryManager: amount more than releasable");
   });
+
+  it("Should release ETH", async function () {
+    const landDao = await deployLandDao();
+    const ether = ethers.utils.parseEther("1");
+    const treasuryManager = await getTreasury(landDao);
+    const [owner, addr1] = await ethers.getSigners();
+    await treasuryManager.setTreasury(addr1.address);
+    await owner.sendTransaction({ to: treasuryManager.address, value: ether });
+    const balance = await treasuryManager.provider.getBalance(addr1.address);
+    await treasuryManager.distributeTreasuryEthereum(ether);
+    const newBalance = await treasuryManager.provider.getBalance(addr1.address);
+    expect(newBalance).to.equal(balance.add(ether));
+  });
+
+  it("Should freeze wallet address", async function () {
+    const landDao = await deployLandDao();
+    const treasuryManager = await getTreasury(landDao);
+    const [owner, addr1] = await ethers.getSigners();
+    await treasuryManager.setTreasury(addr1.address);
+    await treasuryManager.freezeTreasury();
+    await expect(treasuryManager.setTreasury(owner.address)).to.be.revertedWith(
+      "TreasuryManager: wallet address is mandatory"
+    );
+  });
 });

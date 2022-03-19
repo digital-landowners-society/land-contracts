@@ -23,7 +23,7 @@ contract TreasuryManager is Ownable {
     }
 
     function freezeTreasury() external onlyOwner {
-        require(treasuryWallet != address(0));
+        require(treasuryWallet != address(0), "TreasuryManager: wallet address is not set");
         treasuryFrozen = true;
     }
 
