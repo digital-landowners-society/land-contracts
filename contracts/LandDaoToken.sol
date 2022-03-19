@@ -49,7 +49,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         uint8 claimed = landOwnerClaimed[msg.sender];
         require(claimed < 2, "LandDAO: already claimed");
         if (block.timestamp < _halfDate) {
-            require(claimed == 0);
+            require(claimed == 0, "LandDAO: already claimed");
             claimed = 1;
             amount = amount / 2;
         } else {
