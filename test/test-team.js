@@ -5,9 +5,9 @@ const { BigNumber } = require("ethers");
 const deployLandDao = async () => {
   const landDaoFactory = await ethers.getContractFactory("LandDAO");
   const landDao = await landDaoFactory.deploy(
-      "LandDAO",
-      "LAND",
-      "0x0000000000000000000000000000000000000000"
+    "LandDAO",
+    "LAND",
+    "0x0000000000000000000000000000000000000000"
   );
   await landDao.deployed();
   return landDao;
