@@ -10,17 +10,6 @@ contract StrategicSalesManager is Ownable {
     uint256 public startDate;
     IERC20 public landDao;
     mapping(address=>VestingWallet[]) strategicSaleVestingMap;
-    address public investmentWallet;
-    uint256 investments;
-    bool public investmentWalletFrozen = false;
-
-    event StrategicSaleReleased(address sender, address beneficiary, uint256 amount);
-    event StrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds);
-    event Received(address, uint256);
-    event Invested(address, uint256);
-    event InvestmentWithdrawn(address investmentWallet, uint256 amount);
-    event InvestmentWalletSet(address investmentWallet);
-    event InvestmentWalletFrozen();
 
     constructor(address landDaoAddress) Ownable() {
         landDao = IERC20(landDaoAddress);
@@ -28,30 +17,26 @@ contract StrategicSalesManager is Ownable {
     }
 
     // Strategic Sale
-    function doStrategicSaleVesting(address beneficiary, uint256 amount, uint64 startTimestamp, uint64 durationSeconds)
+    function saleVesting(address beneficiary, uint256 amount, uint64 startAfterSeconds, uint64 durationSeconds)
     external
     onlyOwner {
-        require(beneficiary != address(0));
-        require(amount <= landDao.balanceOf(address(this)));
-        require(startTimestamp > startDate);
+        require(beneficiary != address(0), "StrategicSalesManager: beneficiary should be provided");
+        uint64 startTimestamp = uint64(block.timestamp) + startAfterSeconds;
         VestingWallet vestingWallet = new VestingWallet(beneficiary, startTimestamp, durationSeconds);
         strategicSaleVestingMap[beneficiary].push(vestingWallet);
         landDao.transfer(address(vestingWallet), amount);
-        emit StrategicSaleVesting(beneficiary, amount, startTimestamp, durationSeconds);
     }
 
-    function doStrategicSaleDirect(address beneficiary, uint256 amount) external onlyOwner {
-        require(beneficiary != address(0));
-        require(amount <= landDao.balanceOf(address(this)));
+    function saleDirect(address beneficiary, uint256 amount) external onlyOwner {
+        require(beneficiary != address(0), "StrategicSalesManager: beneficiary should be provided");
         landDao.transfer(beneficiary, amount);
-        emit StrategicSaleReleased(msg.sender, beneficiary, amount);
     }
 
-    function doStrategicSaleReleaseOwner(address beneficiary) external onlyOwner {
+    function saleReleaseOwner(address beneficiary) external onlyOwner {
         strategicSaleRelease(beneficiary);
     }
 
-    function doStrategicSaleRelease() public {
+    function saleRelease() external {
         strategicSaleRelease(msg.sender);
     }
 
@@ -59,34 +44,15 @@ contract StrategicSalesManager is Ownable {
         VestingWallet[] memory vestingWallets = strategicSaleVestingMap[beneficiary];
         require(vestingWallets.length > 0);
         for (uint256 i=0; i<vestingWallets.length; i++) {
-            vestingWallets[i].release(address(this));
+            vestingWallets[i].release(address(landDao));
         }
-        emit StrategicSaleReleased(msg.sender, beneficiary, 0);
     }
 
     // Payments
     receive() external payable {
-        emit Received(msg.sender, msg.value);
     }
 
-    function invest() external payable {
-        emit Received(msg.sender, msg.value);
-    }
-
-    function freezeInvestmentWallet() external onlyOwner {
-        require(investmentWallet != address(0));
-        investmentWalletFrozen = true;
-        emit InvestmentWalletFrozen();
-    }
-
-    function setInvestmentWallet(address investmentWalletAddress) external onlyOwner {
-        require(!investmentWalletFrozen);
-        investmentWallet = investmentWalletAddress;
-        emit InvestmentWalletSet(investmentWalletAddress);
-    }
-
-    function investmentWithdraw(uint256 amount) external onlyOwner {
+    function investmentWithdraw(address investmentWallet, uint256 amount) external onlyOwner {
         require(payable(investmentWallet).send(amount));
-        emit InvestmentWithdrawn(investmentWallet, amount);
     }
 }
