@@ -23,8 +23,8 @@ describe("LandDAO Deploy", function () {
   it("Should send tokens", async function () {
     const landDao = await deployContract();
     const [owner, addr1] = await ethers.getSigners();
-    await landDao.sendTokens("landOwners", addr1.address);
-    const expectedBalance = ethers.utils.parseEther("90000000");
+    await landDao.sendTokens("poolRewards", addr1.address);
+    const expectedBalance = ethers.utils.parseEther("340000000");
     expect(await landDao.balanceOf(owner.address)).to.equal(0);
     expect(await landDao.balanceOf(addr1.address)).to.equal(expectedBalance);
   });
@@ -32,8 +32,8 @@ describe("LandDAO Deploy", function () {
   it("Should not double-send tokens", async function () {
     const landDao = await deployContract();
     const [owner, addr1] = await ethers.getSigners();
-    await landDao.sendTokens("landOwners", owner.address);
-    const expectedBalance = ethers.utils.parseEther("90000000");
+    await landDao.sendTokens("poolRewards", owner.address);
+    const expectedBalance = ethers.utils.parseEther("340000000");
     await expect(
       landDao.connect(addr1).sendTokens("landOwners", owner.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");

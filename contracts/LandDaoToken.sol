@@ -10,6 +10,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     IERC721 public immutable dlsNft;
     uint256 public immutable startDate;
     bytes32 public merkleRoot;
+    uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
     mapping(uint256=>bool) public dlsNftOwnerClaimed;
     mapping(address=>uint8) public landOwnerClaimed;
@@ -19,7 +20,6 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         dlsNft = IERC721(dlsNftAddress);
         startDate = block.timestamp;
         _mint(address(this), 1e27);
-        supplyData["landOwners"] = 90_000_000e18;
         supplyData["poolRewards"] = 340_000_000e18;
         supplyData["singleStackingRewards"] = 30_000_000e18;
         supplyData["liquidityPoolRewards"] = 70_000_000e18;
@@ -59,13 +59,13 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
             claimed = 2;
         }
         landOwnerClaimed[msg.sender] = claimed;
-        supplyData["landOwners"] -= amount;
+        landOwnersSupply -= amount;
         _transfer(address(this), msg.sender, amount);
     }
 
     function transferringUnclaimedTokens(address treasuryManager) public onlyOwner {
         require(block.timestamp > startDate + 180 days, "LandDAO: landowners claim not finished yet");
-        _transfer(address(this), treasuryManager, supplyData["landOwners"]);
+        _transfer(address(this), treasuryManager, landOwnersSupply);
     }
 
     // DLS NFT Logic
