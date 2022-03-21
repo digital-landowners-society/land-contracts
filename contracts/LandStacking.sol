@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20VotesComp.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-contract LandStacking is ERC20, ERC20Permit, ERC20VotesComp {
+contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     IERC20 public immutable landToken;
 
     uint public rewardRate = 30;
