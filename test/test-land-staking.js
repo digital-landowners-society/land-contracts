@@ -52,7 +52,7 @@ describe("LandStacking stake", function () {
     const stackingBalance = await landStaking.balanceOf(owner.address);
     expect(stackingBalance).to.equal(ether);
     expect(await landStaking.totalSupply()).to.equal(ether);
-
+    await network.provider.send("evm_mine");
     await landStaking.withdraw(ether);
     const lastBalance = await landDao.balanceOf(owner.address);
     expect(lastBalance).to.equal(ethers.utils.parseEther("100000000"));
