@@ -3,6 +3,7 @@ const utils = ethers.utils;
 const { MerkleTree } = require("merkletreejs");
 const hash = require("keccak256");
 const {expect} = require("chai");
+const {BigNumber} = require("ethers");
 
 const deployLandDao = async (nftAddress) => {
   if (!nftAddress) {
@@ -30,8 +31,15 @@ const deployNft = async (holders) => {
 
 const getSignitureData = async (index, amount) => {
   const account = (await ethers.getSigners())[index];
-  const message = utils.solidityPack(["address", "uint"], [account.address, amount]);
+
+  let value = BigNumber.from(account.address);
+  value = value.mul(BigNumber.from(2).pow(96)).add(amount);
+  console.log(value);
+  console.log(account.address);
+  const finalValue = ethers.utils.defaultAbiCoder.encode(["bytes32"],[value]);
+  const message = ethers.utils.arrayify(finalValue);
   const [owner] = await ethers.getSigners();
+
   const signed = await owner.signMessage(message);
   return { message: message, signed: signed, signer: account };
 };

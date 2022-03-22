@@ -14,8 +14,8 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     address public signer;
     uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
-    mapping(uint256=>bool) public dlsNftOwnerClaimed;
-    mapping(address=>uint8) public landOwnerClaimed;
+    mapping(uint256 => bool) public dlsNftOwnerClaimed;
+    mapping(address => uint8) public landOwnerClaimed;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
@@ -33,7 +33,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     }
 
     function sendTokens(string memory supplyName, address contractAddress) external onlyOwner {
-        require(contractAddress!=address(0), "LandDao: Should sent to someone");
+        require(contractAddress != address(0), "LandDao: Should sent to someone");
         uint256 supply = supplyData[supplyName];
         require(supply > 0, "LandDao: not eligible");
         _transfer(address(this), contractAddress, supply);
@@ -42,9 +42,12 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // Land Owners logic
     function claimLandOwner(uint256 amount, bytes memory signature) external {
-        bytes32 hash = keccak256(abi.encodePacked(msg.sender, amount));
+        bytes32 hash = keccak256(abi.encodePacked(
+                "\x19Ethereum Signed Message:\n32",
+                bytes32(uint256(uint256(uint160(msg.sender)) << 96)+ amount)
+            ));
         address signatureAddress = hash.recover(signature);
-        require(signatureAddress==signer, "LandDAO: invalid signature");
+        require(signatureAddress == signer, "LandDAO: invalid signature");
         uint256 _halfDate = startDate + 60 days;
         uint256 _endDate = _halfDate + 120 days;
         require(block.timestamp <= _endDate, "LandDAO: date out of range");
@@ -72,7 +75,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // DLS NFT Logic
     function claimNftOwner(uint256[] memory tokenIds) external {
-        for (uint256 i=0; i<tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
             require(!dlsNftOwnerClaimed[tokenId], "LandDAO: tokens for NFT already claimed");
             require(dlsNft.ownerOf(tokenId) == msg.sender, "LandDAO: NFT belongs to different address");
