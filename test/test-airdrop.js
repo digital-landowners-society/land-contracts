@@ -53,7 +53,7 @@ describe("LandDAO Claim to land owners", function () {
     const landDao = await deployLandDao();
     const amount = 1000;
     const proofData = await getProofs(1, amount);
-    await landDao.setMerkleRoot(proofData.root);
+    await landDao.setLandOwnerMerkleRoot(proofData.root);
     const signer = proofData.signer;
     await landDao.connect(signer).claimLandOwner(amount, proofData.proof);
     const balance = await landDao.balanceOf(signer.address);
@@ -89,7 +89,7 @@ describe("LandDAO Claim to land owners", function () {
 
     const amount = 1000;
     const proofData = await getProofs(1, amount);
-    await landDao.setMerkleRoot(proofData.root);
+    await landDao.setLandOwnerMerkleRoot(proofData.root);
     const signer = proofData.signer;
     const result = landDao.connect(signer).claimLandOwner(amount, proofData.proof);
     await expect(result).to.be.revertedWith("LandDAO: date out of range");
