@@ -14,6 +14,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     mapping(string => uint256) public supplyData;
     mapping(uint256=>bool) public dlsNftOwnerClaimed;
     mapping(address=>uint8) public landOwnerClaimed;
+    bool public claimEnabled;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
@@ -30,6 +31,10 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         supplyData["strategicSale"] = 50_000_000e18;
     }
 
+
+    function setClaimEnabled(bool _claimEnabled) external onlyOwner {
+        claimEnabled = _claimEnabled;
+    }
     function sendTokens(string memory supplyName, address contractAddress) external onlyOwner {
         require(contractAddress!=address(0), "LandDao: Should sent to someone");
         uint256 supply = supplyData[supplyName];
@@ -40,6 +45,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // Land Owners logic
     function claimLandOwner(uint256 amount, bytes32[] calldata merkleProof) external {
+        require(claimEnabled, "LandDAO: Claiming not enabled");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
         bool valid = MerkleProof.verify(merkleProof, merkleRoot, leaf);
         require(valid, "LandDAO: invalid Merkle Proof");
@@ -70,6 +76,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // DLS NFT Logic
     function claimNftOwner(uint256[] memory tokenIds) external {
+        require(claimEnabled, "LandDAO: Claiming not enabled");
         for (uint256 i=0; i<tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
             require(!dlsNftOwnerClaimed[tokenId], "LandDAO: tokens for NFT already claimed");

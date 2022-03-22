@@ -15,6 +15,7 @@ const deployLandDao = async (nftAddress) => {
     nftAddress
   );
   await landDao.deployed();
+  await landDao.setClaimEnabled(true);
   return landDao;
 };
 

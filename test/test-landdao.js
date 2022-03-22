@@ -9,6 +9,7 @@ const deployContract = async () => {
     "0x0000000000000000000000000000000000000000"
   );
   await landDao.deployed();
+  await landDao.setClaimEnabled(true);
   return landDao;
 };
 
