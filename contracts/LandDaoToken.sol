@@ -81,7 +81,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     }
 
     function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-        require(merkleRoot == bytes32(0), "LandDAO: Merkle root already set");
+//        require(merkleRoot == bytes32(0), "LandDAO: Merkle root already set");
         merkleRoot = _merkleRoot;
     }
 }

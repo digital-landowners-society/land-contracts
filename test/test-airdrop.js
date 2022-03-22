@@ -28,8 +28,15 @@ const deployNft = async (holders) => {
   return contract;
 };
 
-const getProofs = async (index, amount) => {
+const getProofs = async (index, amount, count=0) => {
+
   const accounts = await ethers.getSigners();
+  console.log("Creating additional wallets");
+  for (let i = 0; i < count; i++) {
+    const newWallet = await ethers.Wallet.createRandom();
+    accounts.push(newWallet);
+  }
+  console.log("Created leafs " + accounts.length.toString());
   const raw = accounts.map((x) => {
     return { address: x.address, amount: amount };
   });
@@ -44,6 +51,7 @@ const getProofs = async (index, amount) => {
   const item = data[index];
   const leaf = hash(item);
   const proof = tree.getHexProof(leaf);
+  console.log("Generated proof");
   return { root: root, proof: proof, signer: accounts[index] };
 };
 
@@ -68,7 +76,8 @@ describe("LandDAO Claim to land owners", function () {
     const newBalance = await landDao.balanceOf(signer.address);
     expect(newBalance).to.equal(amount);
 
-    const proofDataOther = await getProofs(2, amount);
+    const proofDataOther = await getProofs(2, amount, 100);
+    await landDao.setMerkleRoot(proofDataOther.root);
     const signerOther = proofDataOther.signer;
     await landDao.connect(signerOther).claimLandOwner(amount, proofDataOther.proof);
     const balanceOther = await landDao.balanceOf(signerOther.address);
@@ -87,7 +96,7 @@ describe("LandDAO Claim to land owners", function () {
     await network.provider.send("evm_mine");
 
     const amount = 1000;
-    const proofData = await getProofs(1, amount);
+    const proofData = await getProofs(1, amount, 100);
     await landDao.setMerkleRoot(proofData.root);
     const signer = proofData.signer;
     const result = landDao.connect(signer).claimLandOwner(amount, proofData.proof);
@@ -116,7 +125,7 @@ describe("LandDAO Claim to nft owners", function () {
     await landDao.connect(addr1).claimNftOwner([1, 3]);
     const balance = await landDao.balanceOf(addr1.address);
     expect(balance).to.equal(ethers.utils.parseEther("18000"));
-    const result = landDao.connect(addr1).claimNftOwner([1, 3])
+    const result = landDao.connect(addr1).claimNftOwner([1, 3]);
     await expect(result).to.be.revertedWith(
       "LandDAO: tokens for NFT already claimed"
     );
