@@ -12,7 +12,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     bytes32 public landOwnerMerkleRoot;
     bytes32 public allowlistMerkleRoot;
     uint256 landOwnersSupply = 90_000_000e18;
-    mapping(string => uint256) public supplyData;
+    mapping(string=>uint256) public supplyData;
     mapping(uint256=>bool) public dlsNftOwnerClaimed;
     mapping(address=>uint8) public landOwnerClaimed;
     bool public claimEnabled;
