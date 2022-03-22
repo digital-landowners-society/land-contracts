@@ -3,13 +3,13 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract LandDAO is ERC20, ERC20Permit, Ownable {
     IERC721 public immutable dlsNft;
     uint256 public immutable startDate;
-    bytes32 public merkleRoot;
+    address public signer;
     uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
     mapping(uint256=>bool) public dlsNftOwnerClaimed;
@@ -39,10 +39,10 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     }
 
     // Land Owners logic
-    function claimLandOwner(uint256 amount, bytes32[] calldata merkleProof) external {
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
-        bool valid = MerkleProof.verify(merkleProof, merkleRoot, leaf);
-        require(valid, "LandDAO: invalid Merkle Proof");
+    function claimLandOwner(uint256 amount, bytes calldata signature) external {
+        bytes32 hash = keccak256(abi.encodePacked(msg.sender, amount));
+        bool valid = SignatureChecker.isValidSignatureNow(signer, hash, signature);
+        //require(valid, "LandDAO: invalid signature");
         uint256 _halfDate = startDate + 60 days;
         uint256 _endDate = _halfDate + 120 days;
         require(block.timestamp <= _endDate, "LandDAO: date out of range");
@@ -80,8 +80,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         _transfer(address(this), msg.sender, amount);
     }
 
-    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-        require(merkleRoot == bytes32(0), "LandDAO: Merkle root already set");
-        merkleRoot = _merkleRoot;
+    function setSigner(address _signer) external onlyOwner {
+        signer = _signer;
     }
 }
