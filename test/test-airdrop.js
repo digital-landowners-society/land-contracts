@@ -31,15 +31,9 @@ const deployNft = async (holders) => {
 
 const getSignitureData = async (index, amount) => {
   const account = (await ethers.getSigners())[index];
-
-  let value = BigNumber.from(account.address);
-  value = value.mul(BigNumber.from(2).pow(96)).add(amount);
-  console.log(value);
-  console.log(account.address);
-  const finalValue = ethers.utils.defaultAbiCoder.encode(["bytes32"],[value]);
+  const finalValue = utils.solidityPack(["address", "uint96"], [account.address, amount]);
   const message = ethers.utils.arrayify(finalValue);
   const [owner] = await ethers.getSigners();
-
   const signed = await owner.signMessage(message);
   return { message: message, signed: signed, signer: account };
 };
@@ -52,7 +46,6 @@ describe("LandDAO Claim to land owners", function () {
     const [owner] = await ethers.getSigners();
     await landDao.setSigner(owner.address);
     const signer = signature.signer;
-    console.log(signature);
     await landDao.connect(signer).claimLandOwner(amount, signature.signed);
     const balance = await landDao.balanceOf(signer.address);
     expect(balance).to.equal(amount / 2);

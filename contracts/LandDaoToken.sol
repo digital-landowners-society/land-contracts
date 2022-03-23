@@ -42,10 +42,8 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // Land Owners logic
     function claimLandOwner(uint256 amount, bytes memory signature) external {
-        bytes32 hash = keccak256(abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                bytes32(uint256(uint256(uint160(msg.sender)) << 96)+ amount)
-            ));
+        bytes32 message = bytes32(uint256(uint256(uint160(msg.sender)) << 96) + amount);
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
         address signatureAddress = hash.recover(signature);
         require(signatureAddress == signer, "LandDAO: invalid signature");
         uint256 _halfDate = startDate + 60 days;
