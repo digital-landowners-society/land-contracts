@@ -108,7 +108,7 @@ describe("LandDAO Claim to nft owners", function () {
     await landDao.connect(addr1).claimNftOwner([1, 3]);
     const balance = await landDao.balanceOf(addr1.address);
     expect(balance).to.equal(ethers.utils.parseEther("18000"));
-    const result = landDao.connect(addr1).claimNftOwner([1, 3])
+    const result = landDao.connect(addr1).claimNftOwner([1, 3]);
     await expect(result).to.be.revertedWith(
       "LandDAO: tokens for NFT already claimed"
     );
