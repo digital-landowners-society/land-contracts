@@ -3,17 +3,19 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract LandDAO is ERC20, ERC20Permit, Ownable {
+    using ECDSA for bytes32;
+
     IERC721 public immutable dlsNft;
     uint256 public immutable startDate;
-    bytes32 public merkleRoot;
+    address public signer;
     uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
-    mapping(uint256=>bool) public dlsNftOwnerClaimed;
-    mapping(address=>uint8) public landOwnerClaimed;
+    mapping(uint256 => bool) public dlsNftOwnerClaimed;
+    mapping(address => uint8) public landOwnerClaimed;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
@@ -31,7 +33,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     }
 
     function sendTokens(string memory supplyName, address contractAddress) external onlyOwner {
-        require(contractAddress!=address(0), "LandDao: Should sent to someone");
+        require(contractAddress != address(0), "LandDao: Should sent to someone");
         uint256 supply = supplyData[supplyName];
         require(supply > 0, "LandDao: not eligible");
         _transfer(address(this), contractAddress, supply);
@@ -39,10 +41,11 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     }
 
     // Land Owners logic
-    function claimLandOwner(uint256 amount, bytes32[] calldata merkleProof) external {
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
-        bool valid = MerkleProof.verify(merkleProof, merkleRoot, leaf);
-        require(valid, "LandDAO: invalid Merkle Proof");
+    function claimLandOwner(uint256 amount, bytes memory signature) external {
+        bytes32 message = bytes32(uint256(uint256(uint160(msg.sender)) << 96) + amount);
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
+        address signatureAddress = hash.recover(signature);
+        require(signatureAddress == signer, "LandDAO: invalid signature");
         uint256 _halfDate = startDate + 60 days;
         uint256 _endDate = _halfDate + 120 days;
         require(block.timestamp <= _endDate, "LandDAO: date out of range");
@@ -70,7 +73,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // DLS NFT Logic
     function claimNftOwner(uint256[] memory tokenIds) external {
-        for (uint256 i=0; i<tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
             require(!dlsNftOwnerClaimed[tokenId], "LandDAO: tokens for NFT already claimed");
             require(dlsNft.ownerOf(tokenId) == msg.sender, "LandDAO: NFT belongs to different address");
@@ -80,8 +83,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         _transfer(address(this), msg.sender, amount);
     }
 
-    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-//        require(merkleRoot == bytes32(0), "LandDAO: Merkle root already set");
-        merkleRoot = _merkleRoot;
+    function setSigner(address _signer) external onlyOwner {
+        signer = _signer;
     }
 }

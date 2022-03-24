@@ -3,6 +3,7 @@ const utils = ethers.utils;
 const { MerkleTree } = require("merkletreejs");
 const hash = require("keccak256");
 const {expect} = require("chai");
+const {BigNumber} = require("ethers");
 
 const deployLandDao = async (nftAddress) => {
   if (!nftAddress) {
@@ -28,62 +29,44 @@ const deployNft = async (holders) => {
   return contract;
 };
 
-const getProofs = async (index, amount, count=0) => {
-
-  const accounts = await ethers.getSigners();
-  console.log("Creating additional wallets");
-  for (let i = 0; i < count; i++) {
-    const newWallet = await ethers.Wallet.createRandom();
-    accounts.push(newWallet);
-  }
-  console.log("Created leafs " + accounts.length.toString());
-  const raw = accounts.map((x) => {
-    return { address: x.address, amount: amount };
-  });
-  const data = raw.map((x) => {
-    return utils.solidityPack(["address", "uint"], [x.address, x.amount]);
-  });
-  const tree = new MerkleTree(data, hash, {
-    hashLeaves: true,
-    sortPairs: true,
-  });
-  const root = tree.getHexRoot();
-  const item = data[index];
-  const leaf = hash(item);
-  const proof = tree.getHexProof(leaf);
-  console.log("Generated proof");
-  return { root: root, proof: proof, signer: accounts[index] };
+const getSignitureData = async (index, amount) => {
+  const account = (await ethers.getSigners())[index];
+  const finalValue = utils.solidityPack(["address", "uint96"], [account.address, amount]);
+  const message = ethers.utils.arrayify(finalValue);
+  const [owner] = await ethers.getSigners();
+  const signed = await owner.signMessage(message);
+  return { message: message, signed: signed, signer: account };
 };
 
 describe("LandDAO Claim to land owners", function () {
   it("Should set merkle root", async function () {
     const landDao = await deployLandDao();
     const amount = 1000;
-    const proofData = await getProofs(1, amount);
-    await landDao.setMerkleRoot(proofData.root);
-    const signer = proofData.signer;
-    await landDao.connect(signer).claimLandOwner(amount, proofData.proof);
+    const signature = await getSignitureData(1, amount);
+    const [owner] = await ethers.getSigners();
+    await landDao.setSigner(owner.address);
+    const signer = signature.signer;
+    await landDao.connect(signer).claimLandOwner(amount, signature.signed);
     const balance = await landDao.balanceOf(signer.address);
     expect(balance).to.equal(amount / 2);
-    const result = landDao.connect(signer).claimLandOwner(amount, proofData.proof);
+    const result = landDao.connect(signer).claimLandOwner(amount, signature.signed);
     await expect(result).to.be.revertedWith("LandDAO: already claimed");
 
     const nextDate = 3600 * 24 * 100;
     await network.provider.send("evm_increaseTime", [nextDate]);
     await network.provider.send("evm_mine");
 
-    await landDao.connect(signer).claimLandOwner(amount, proofData.proof);
+    await landDao.connect(signer).claimLandOwner(amount, signature.signed);
     const newBalance = await landDao.balanceOf(signer.address);
     expect(newBalance).to.equal(amount);
 
-    const proofDataOther = await getProofs(2, amount, 100);
-    await landDao.setMerkleRoot(proofDataOther.root);
-    const signerOther = proofDataOther.signer;
-    await landDao.connect(signerOther).claimLandOwner(amount, proofDataOther.proof);
+    const signatureOther = await getSignitureData(2, amount);
+    const signerOther = signatureOther.signer;
+    await landDao.connect(signerOther).claimLandOwner(amount, signatureOther.signed);
     const balanceOther = await landDao.balanceOf(signerOther.address);
     expect(balanceOther).to.equal(amount);
 
-    const resultOther = landDao.connect(signerOther).claimLandOwner(amount, proofDataOther.proof);
+    const resultOther = landDao.connect(signerOther).claimLandOwner(amount, signatureOther.signed);
     await expect(resultOther).to.be.revertedWith("LandDAO: already claimed");
   });
 
@@ -96,10 +79,10 @@ describe("LandDAO Claim to land owners", function () {
     await network.provider.send("evm_mine");
 
     const amount = 1000;
-    const proofData = await getProofs(1, amount, 100);
-    await landDao.setMerkleRoot(proofData.root);
-    const signer = proofData.signer;
-    const result = landDao.connect(signer).claimLandOwner(amount, proofData.proof);
+    const signature = await getSignitureData(1, amount);
+    await landDao.setSigner(owner.address);
+    const signer = signature.signer;
+    const result = landDao.connect(signer).claimLandOwner(amount, signature.signed);
     await expect(result).to.be.revertedWith("LandDAO: date out of range");
 
     await landDao.transferringUnclaimedTokens(owner.address);
