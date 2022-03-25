@@ -52,7 +52,6 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
             address signatureAddress = hash.recover(allowlistSignature);
             require(signatureAddress == signer, "LandDAO: invalid signature");
         }
-        require(claimEnabled, "LandDao: you can not claim yet");
         if (amount > 0) {
             claimLandOwner(amount, signature);
         }
