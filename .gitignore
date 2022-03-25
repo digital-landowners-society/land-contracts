@@ -8,3 +8,5 @@ typechain
 cache
 artifacts
 package-lock.json
+scripts/landowner-signatures.csv
+scripts/allowlist-signatures.csv
