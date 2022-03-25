@@ -16,8 +16,8 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     mapping(string => uint256) public supplyData;
     mapping(uint256 => bool) public dlsNftOwnerClaimed;
     mapping(address => uint8) public landOwnerClaimed;
-    bool claimEnabled;
-    bool allowlistEnabled;
+    bool public claimEnabled;
+    bool public allowlistEnabled;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
