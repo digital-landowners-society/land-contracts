@@ -10,8 +10,8 @@ const generateSignature = async (address, amount, signer) => {
 };
 
 async function processLineByLine() {
-  const f = fs.createReadStream("/home/soso/projects/dls/land-tools/backend/data/landowners/final.csv");
-  const o = "scripts/allowlist-signatures.csv";
+  const f = fs.createReadStream("/home/soso/projects/dls/land-tools/backend/data/landowners/allowlist.csv");
+  const o = "/home/soso/projects/dls/land-tools/backend/data/landowners/allowlist-signatures.csv";
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY);
   console.log(signer.address);
   const rl = readline.createInterface({input: f, crlfDelay: Infinity});
@@ -28,7 +28,7 @@ async function processLineByLine() {
     const data = line.split(",");
     const address = data[0];
     const signature = await generateSignature(address, signer);
-    const newLine = address + "," + signature + "\n";
+    const newLine = address.toLowerCase() + "," + signature + "\n";
     fs.writeFile(o, newLine, { flag: "a+" }, (err) => {});
     console.log(counter);
   }
