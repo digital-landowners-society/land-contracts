@@ -3,6 +3,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 
 contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     IERC20 public immutable landToken;
@@ -15,6 +16,7 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
 
     mapping(address => uint) public userRewardPerTokenPaid;
     mapping(address => uint) public rewards;
+    mapping(address => TokenTimelock[]) public timeLocks;
 
     constructor(string memory name_, string memory symbol_, address _landToken)
     ERC20(name_, symbol_)
@@ -64,7 +66,9 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     }
 
     function withdraw(uint _amount) external updateReward(msg.sender) {
-        landToken.transfer(msg.sender, _amount);
+        TokenTimelock timeLock = new TokenTimelock(landToken, msg.sender, block.timestamp + 30 days);
+        landToken.transfer(address(timeLock), _amount);
+        timeLocks[msg.sender].push(timeLock);
         _burn(msg.sender, _amount);
     }
 
