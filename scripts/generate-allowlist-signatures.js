@@ -21,7 +21,7 @@ async function processLineByLine() {
     if (header) {
       header = false;
       const newLine = "address,signature\n";
-      fs.writeFile(o, newLine, { flag: "a+" }, (err) => {});
+      fs.writeFile(o, newLine, { }, (err) => {});
       continue;
     }
     counter++;

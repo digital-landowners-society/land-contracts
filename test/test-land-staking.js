@@ -78,7 +78,7 @@ describe("LandStacking stake", function () {
     expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000"));
 
     await landStaking.getReward();
-    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000").add(30));
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000030"));
 
   });
 });

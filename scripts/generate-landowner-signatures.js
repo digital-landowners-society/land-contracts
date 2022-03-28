@@ -23,7 +23,7 @@ async function processLineByLine() {
     if (header) {
       header = false;
       const newLine = line + ",signature\n";
-      fs.writeFile(o, newLine, { flag: "a+" }, (err) => {});
+      fs.writeFile(o, newLine, {  }, (err) => {});
       continue;
     }
     counter++;

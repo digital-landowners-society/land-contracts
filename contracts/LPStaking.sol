@@ -7,7 +7,7 @@ contract LPStaking is ERC20, ERC20Permit {
     IERC20 public rewardsToken;
     IERC20 public stakingToken;
 
-    uint public rewardRate = 70;
+    uint public rewardRate = 70e18;
     uint public immutable startBlock;
     uint public immutable endBlock;
     uint public lastUpdateBlock;
@@ -62,6 +62,14 @@ contract LPStaking is ERC20, ERC20Permit {
     function stake(uint _amount) external updateReward(msg.sender) {
         _mint(msg.sender, _amount);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function withdrawAndGetReward(uint _amount) external updateReward(msg.sender) {
+        _burn(msg.sender, _amount);
+        stakingToken.transfer(msg.sender, _amount);
+        uint reward = rewards[msg.sender];
+        rewards[msg.sender] = 0;
+        rewardsToken.transfer(msg.sender, reward);
     }
 
     function withdraw(uint _amount) external updateReward(msg.sender) {

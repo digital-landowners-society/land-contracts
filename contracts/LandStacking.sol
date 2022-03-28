@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     IERC20 public immutable landToken;
 
-    uint public rewardRate = 30;
+    uint public rewardRate = 30e18;
     uint public immutable startBlock;
     uint public immutable endBlock;
     uint public lastUpdateBlock;
