@@ -11,7 +11,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     IERC721 public immutable dlsNft;
     uint256 public immutable startDate;
-    address public signer;
+    address public messageSigner;
     uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
     mapping(uint256 => bool) public dlsNftOwnerClaimed;
@@ -23,7 +23,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
         dlsNft = IERC721(dlsNftAddress);
         startDate = block.timestamp;
-        signer = msg.sender;
+        messageSigner = msg.sender;
         _mint(address(this), 1e27);
         supplyData["poolRewards"] = 340_000_000e18;
         supplyData["singleStackingRewards"] = 30_000_000e18;
@@ -50,7 +50,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
             bytes32 message = bytes32(uint256(uint160(msg.sender)));
             bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
             address signatureAddress = hash.recover(allowlistSignature);
-            require(signatureAddress == signer, "LandDAO: invalid signature");
+            require(signatureAddress == messageSigner, "LandDAO: invalid whitelist signature");
         }
         if (amount > 0) {
             claimLandOwner(amount, signature);
@@ -62,10 +62,10 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     // Land Owners logic
     function claimLandOwner(uint256 amount, bytes memory signature) internal {
-        bytes32 message = bytes32(uint256(uint160(msg.sender)) << 96 + amount);
+        bytes32 message = bytes32((uint256(uint160(msg.sender)) << 96) + amount);
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
         address signatureAddress = hash.recover(signature);
-        require(signatureAddress == signer, "LandDAO: invalid signature");
+        require(signatureAddress == messageSigner, "LandDAO: invalid landowner signature");
         uint256 _halfDate = startDate + 60 days;
         uint256 _endDate = _halfDate + 120 days;
         require(block.timestamp <= _endDate, "LandDAO: date out of range");
@@ -103,8 +103,8 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         _transfer(address(this), msg.sender, amount);
     }
 
-    function setSigner(address _signer) external onlyOwner {
-        signer = _signer;
+    function setMessageSigner(address _messageSigner) external onlyOwner {
+        messageSigner = _messageSigner;
     }
 
     function setClaimEnabled(bool claimEnabled_) external onlyOwner{
