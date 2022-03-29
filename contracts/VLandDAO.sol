@@ -25,7 +25,7 @@ contract VLandDAO is ERC20, ERC20Snapshot, Ownable, ERC20Permit, ERC20Votes {
         poolDistributor = _poolDistributor;
     }
 
-    function setStaking(address _staking) public onlyOwner {
+    function setStaking(address _staking) external onlyOwner {
         require(_staking != address(0));
         staking = _staking;
     }
@@ -35,7 +35,7 @@ contract VLandDAO is ERC20, ERC20Snapshot, Ownable, ERC20Permit, ERC20Votes {
         return _snapshot();
     }
 
-    function mint(address to, uint256 amount) public onlyStaking {
+    function mint(address to, uint256 amount) external onlyStaking {
         _mint(to, amount);
     }
 

@@ -4,14 +4,14 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-interface IVLandDAO is Pausable {
-    function mint(address to, uint256 amount) public;
-    function burn(address account, uint256 amount) public;
+interface IVLandDAO  {
+    function mint(address to, uint256 amount) external;
+    function burn(address account, uint256 amount) external;
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract LandStacking {
+contract LandStacking is Pausable {
     IERC20 public immutable landToken;
     IVLandDAO public immutable vLandToken;
 
@@ -38,7 +38,7 @@ contract LandStacking {
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (vLandToken.totalSupply() == 0) {
             return rewardPerTokenStored;
         }
         return
@@ -48,7 +48,7 @@ contract LandStacking {
 
     function earned(address account) public view returns (uint256) {
         return
-        ((balanceOf(account) *
+        ((vLandToken.balanceOf(account) *
         (rewardPerToken() - rewardPerTokenPaid[account])) / 1e18) +
         rewards[account];
     }
