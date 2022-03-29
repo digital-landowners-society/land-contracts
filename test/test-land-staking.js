@@ -54,8 +54,9 @@ describe("LandStacking stake", function () {
     expect(await landStaking.totalSupply()).to.equal(ether);
     await network.provider.send("evm_mine");
     await landStaking.withdraw(ether);
-    const lastBalance = await landDao.balanceOf(owner.address);
-    expect(lastBalance).to.equal(ethers.utils.parseEther("100000000"));
+    const timeLock = await landStaking.timeLocks(owner.address, 0);
+    const lastBalance = await landDao.balanceOf(timeLock);
+    expect(lastBalance).to.equal(ether);
     expect(await landStaking.balanceOf(owner.address)).to.equal(0);
     expect(await landStaking.totalSupply()).to.equal(0);
   });
@@ -74,11 +75,8 @@ describe("LandStacking stake", function () {
     expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
     expect(await landStaking.totalSupply()).to.equal(ether);
 
-    await landStaking.withdraw(ether);
-    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000"));
-
     await landStaking.getReward();
-    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000030"));
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000029"));
 
   });
 });

@@ -1,8 +1,6 @@
 const { ethers, network} = require("hardhat");
 const utils = ethers.utils;
-const hash = require("keccak256");
-const {expect} = require("chai");
-const {BigNumber} = require("ethers");
+const { expect } = require("chai");
 
 const deployLandDao = async (nftAddress) => {
   if (!nftAddress) {
@@ -41,8 +39,6 @@ describe("LandDAO Claim to land owners", function () {
   it("Should be enabled to claim as a land owner", async function () {
     const landDao = await deployLandDao();
     await landDao.setClaimEnabled(true);
-    const x = await landDao.messageSigner();
-    console.log(x)
     const amount = 1000;
     const signature = await getSignitureData(1, amount);
     const signer = signature.signer;
