@@ -39,12 +39,12 @@ describe("LandDAO Claim to land owners", function () {
   it("Should be enabled to claim as a land owner", async function () {
     const landDao = await deployLandDao();
     await landDao.setClaimEnabled(true);
-    const amount = 1000;
+    const amount = utils.parseEther("100000");
     const signature = await getSignitureData(1, amount);
     const signer = signature.signer;
     await landDao.connect(signer).claim(amount, signature.signed, [], []);
     const balance = await landDao.balanceOf(signer.address);
-    expect(balance).to.equal(amount / 2);
+    expect(balance).to.equal(amount.div(2));
     const result = landDao.connect(signer).claim(amount, signature.signed, [], []);
     await expect(result).to.be.revertedWith("LandDAO: already claimed");
 
