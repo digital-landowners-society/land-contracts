@@ -7,7 +7,7 @@ contract LPStaking {
     IERC20 public rewardsToken;
     IERC20 public stakingToken;
 
-    uint public rewardRate = 70e18;
+    uint public constant rewardRate = 70e18;
     uint public immutable startBlock;
     uint public immutable endBlock;
     uint public lastUpdateBlock;

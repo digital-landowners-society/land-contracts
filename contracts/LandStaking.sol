@@ -15,7 +15,7 @@ contract LandStaking is Pausable {
     IERC20 public immutable landToken;
     IVLandDAO public immutable vLandToken;
 
-    uint256 public rewardRate = 30e18;
+    uint256 public constant rewardRate = 30e18;
     uint256 public immutable startBlock;
     uint256 public immutable endBlock;
     uint256 public lastUpdateBlock;
