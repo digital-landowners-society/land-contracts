@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract LPStaking is ERC20, ERC20Permit {
+contract LPStaking {
     IERC20 public rewardsToken;
     IERC20 public stakingToken;
 
@@ -16,9 +16,18 @@ contract LPStaking is ERC20, ERC20Permit {
     mapping(address => uint) public userRewardPerTokenPaid;
     mapping(address => uint) public rewards;
 
+    uint256 private _totalSupply;
+    mapping(address => uint256) private _balances;
+
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
+    }
+
     constructor(string memory name_, string memory symbol_, address _stakingToken, address _rewardsToken)
-    ERC20(name_, symbol_)
-    ERC20Permit(name_)
     {
         stakingToken = IERC20(_stakingToken);
         rewardsToken = IERC20(_rewardsToken);
@@ -26,17 +35,17 @@ contract LPStaking is ERC20, ERC20Permit {
         endBlock = block.number + 1e6;
     }
 
+    function lastBlock() public view returns (uint256) {
+        return block.number < endBlock ? block.number : endBlock;
+    }
+
     function rewardPerToken() public view returns (uint) {
-        if (totalSupply() == 0) {
+        if (_totalSupply == 0) {
             return rewardPerTokenStored;
-        }
-        uint lastBlock = block.number;
-        if (lastBlock > endBlock) {
-            lastBlock = endBlock;
         }
         return
         rewardPerTokenStored +
-        (((lastBlock - lastUpdateBlock) * rewardRate * 1e18) / totalSupply());
+        (((lastBlock() - lastUpdateBlock) * rewardRate * 1e18) / _totalSupply);
     }
 
     function earned(address account) public view returns (uint) {
@@ -48,36 +57,37 @@ contract LPStaking is ERC20, ERC20Permit {
 
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
-        uint lastBlock = block.number;
-        if (lastBlock > endBlock) {
-            lastBlock = endBlock;
-        }
-        lastUpdateBlock = lastBlock;
-
+        lastUpdateBlock = lastBlock();
         rewards[account] = earned(account);
         userRewardPerTokenPaid[account] = rewardPerTokenStored;
         _;
     }
 
+    function exit() external {
+        withdraw(_balances[msg.sender]);
+        getReward();
+    }
+
     function stake(uint _amount) external updateReward(msg.sender) {
-        _mint(msg.sender, _amount);
+        require(_amount > 0, "Cannot stake 0");
+        _totalSupply += _amount;
+        _balances[msg.sender] += _amount;
         stakingToken.transferFrom(msg.sender, address(this), _amount);
     }
 
     function withdrawAndGetReward(uint _amount) external updateReward(msg.sender) {
-        _burn(msg.sender, _amount);
-        stakingToken.transfer(msg.sender, _amount);
-        uint reward = rewards[msg.sender];
-        rewards[msg.sender] = 0;
-        rewardsToken.transfer(msg.sender, reward);
+        withdraw(_amount);
+        getReward();
     }
 
-    function withdraw(uint _amount) external updateReward(msg.sender) {
-        _burn(msg.sender, _amount);
+    function withdraw(uint256 _amount) public updateReward(msg.sender) {
+        require(_amount > 0, "Cannot withdraw 0");
+        _totalSupply -= _amount;
+        _balances[msg.sender] -= _amount;
         stakingToken.transfer(msg.sender, _amount);
     }
 
-    function getReward() external updateReward(msg.sender) {
+    function getReward() public updateReward(msg.sender) {
         uint reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
         rewardsToken.transfer(msg.sender, reward);

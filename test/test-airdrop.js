@@ -26,7 +26,7 @@ const deployNft = async (holders) => {
   return contract;
 };
 
-const getSignitureData = async (index, amount) => {
+const getSignatureData = async (index, amount) => {
   const account = (await ethers.getSigners())[index];
   const finalValue = utils.solidityPack(["address", "uint96"], [account.address, amount]);
   const message = ethers.utils.arrayify(finalValue);
@@ -35,12 +35,54 @@ const getSignitureData = async (index, amount) => {
   return { message: message, signed: signed, signer: account };
 };
 
+const getWhitelistData = async (index) => {
+  const account = (await ethers.getSigners())[index];
+  const finalValue = utils.solidityPack(["uint"], [account.address]);
+  const message = ethers.utils.arrayify(finalValue);
+  const [owner] = await ethers.getSigners();
+  const signed = await owner.signMessage(message);
+  return { message: message, signed: signed, signer: account };
+};
+
+describe("LandDAO Claim whitelist", function () {
+  it("Should not be unable to claim if not open", async function () {
+    const landDao = await deployLandDao();
+    const amount = utils.parseEther("100000");
+    const signature = await getSignatureData(1, amount);
+    const signer = signature.signer;
+    const result = landDao.connect(signer).claim(amount, signature.signed, [], []);
+    await expect(result).to.be.revertedWith("LandDao: you can not claim yet");
+  });
+
+  it("Should not be unable to claim if not whitelisted", async function () {
+    const landDao = await deployLandDao();
+    await landDao.setAllowlistEnabled(true);
+    const amount = utils.parseEther("100000");
+    const signature = await getSignatureData(1, amount);
+    const signer = signature.signer;
+    const result = landDao.connect(signer).claim(amount, signature.signed, [], []);
+    await expect(result).to.be.revertedWith(
+      "LandDao: you can not claim yet unless you provide allowlist data"
+    );
+  });
+
+  it("Should be unable to claim if whitelisted", async function () {
+    const landDao = await deployLandDao();
+    await landDao.setAllowlistEnabled(true);
+    const amount = utils.parseEther("100000");
+    const signature = await getSignatureData(1, amount);
+    const whitelist = await getWhitelistData(1);
+    const signer = signature.signer;
+    await landDao.connect(signer).claim(amount, signature.signed, whitelist.signed, []);
+  });
+});
+
 describe("LandDAO Claim to land owners", function () {
   it("Should be enabled to claim as a land owner", async function () {
     const landDao = await deployLandDao();
     await landDao.setClaimEnabled(true);
     const amount = utils.parseEther("100000");
-    const signature = await getSignitureData(1, amount);
+    const signature = await getSignatureData(1, amount);
     const signer = signature.signer;
     await landDao.connect(signer).claim(amount, signature.signed, [], []);
     const balance = await landDao.balanceOf(signer.address);
@@ -56,7 +98,7 @@ describe("LandDAO Claim to land owners", function () {
     const newBalance = await landDao.balanceOf(signer.address);
     expect(newBalance).to.equal(amount);
 
-    const signatureOther = await getSignitureData(2, amount);
+    const signatureOther = await getSignatureData(2, amount);
     const signerOther = signatureOther.signer;
     await landDao.connect(signerOther).claim(amount, signatureOther.signed, [], []);
     const balanceOther = await landDao.balanceOf(signerOther.address);
@@ -76,7 +118,7 @@ describe("LandDAO Claim to land owners", function () {
     await network.provider.send("evm_mine");
 
     const amount = 1000;
-    const signature = await getSignitureData(1, amount);
+    const signature = await getSignatureData(1, amount);
     const signer = signature.signer;
     const result = landDao.connect(signer).claim(amount, signature.signed, [], []);
     await expect(result).to.be.revertedWith("LandDAO: date out of range");
@@ -124,3 +166,4 @@ describe("LandDAO Claim to nft owners", function () {
     );
   });
 });
+

@@ -11,7 +11,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     IERC721 public immutable dlsNft;
     uint256 public immutable startDate;
-    address public messageSigner;
+    address public immutable messageSigner;
     uint256 landOwnersSupply = 90_000_000e18;
     mapping(string => uint256) public supplyData;
     mapping(uint256 => bool) public dlsNftOwnerClaimed;
@@ -101,10 +101,6 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         }
         uint256 amount = 9_000e18 * tokenIds.length;
         _transfer(address(this), msg.sender, amount);
-    }
-
-    function setMessageSigner(address _messageSigner) external onlyOwner {
-        messageSigner = _messageSigner;
     }
 
     function setClaimEnabled(bool claimEnabled_) external onlyOwner{

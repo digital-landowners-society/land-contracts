@@ -14,7 +14,7 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     uint256 public lastUpdateBlock;
     uint256 public rewardPerTokenStored;
 
-    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public rewardPerTokenPaid;
     mapping(address => uint256) public rewards;
     mapping(address => TokenTimelock[]) public timeLocks;
 
@@ -27,36 +27,31 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
         endBlock = block.number + 1e6;
     }
 
+    function lastBlock() public view returns (uint256) {
+        return block.number < endBlock ? block.number : endBlock;
+    }
+
     function rewardPerToken() public view returns (uint256) {
         if (totalSupply() == 0) {
             return rewardPerTokenStored;
         }
-        uint lastBlock = block.number;
-        if (lastBlock > endBlock) {
-            lastBlock = endBlock;
-        }
         return
         rewardPerTokenStored +
-        (((lastBlock - lastUpdateBlock) * rewardRate * 1e18) / totalSupply());
+        (((lastBlock() - lastUpdateBlock) * rewardRate * 1e18) / totalSupply());
     }
 
     function earned(address account) public view returns (uint256) {
         return
         ((balanceOf(account) *
-        (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
+        (rewardPerToken() - rewardPerTokenPaid[account])) / 1e18) +
         rewards[account];
     }
 
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
-        uint256 lastBlock = block.number;
-        if (lastBlock > endBlock) {
-            lastBlock = endBlock;
-        }
-        lastUpdateBlock = lastBlock;
-
+        lastUpdateBlock = lastBlock();
         rewards[account] = earned(account);
-        userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        rewardPerTokenPaid[account] = rewardPerTokenStored;
         _;
     }
 
