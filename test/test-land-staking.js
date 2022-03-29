@@ -29,7 +29,7 @@ const deploySubContract = async (landDao, factoryName) => {
 describe("LandStacking stake", function () {
   it("Should be able to stake and un-stake", async function () {
     const landDao = await deployLandDao();
-    const landStaking = await deploySubContract(landDao, "LandStacking");
+    const landStaking = await deploySubContract(landDao, "LandStaking");
 
     const [owner] = await ethers.getSigners();
     await landDao.sendTokens("treasury", owner.address);

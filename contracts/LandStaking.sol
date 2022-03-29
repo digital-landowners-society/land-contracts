@@ -11,7 +11,7 @@ interface IVLandDAO  {
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract LandStacking is Pausable {
+contract LandStaking is Pausable {
     IERC20 public immutable landToken;
     IVLandDAO public immutable vLandToken;
 

@@ -26,7 +26,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         messageSigner = msg.sender;
         _mint(address(this), 1e27);
         supplyData["poolRewards"] = 340_000_000e18;
-        supplyData["singleStackingRewards"] = 30_000_000e18;
+        supplyData["singleStakingRewards"] = 30_000_000e18;
         supplyData["liquidityPoolRewards"] = 70_000_000e18;
         supplyData["dlsDao"] = 90_000_000e18;
         supplyData["liquidityManagement"] = 20_000_000e18;
