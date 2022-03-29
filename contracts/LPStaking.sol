@@ -27,7 +27,7 @@ contract LPStaking {
         return _balances[account];
     }
 
-    constructor(string memory name_, string memory symbol_, address _stakingToken, address _rewardsToken)
+    constructor(address _stakingToken, address _rewardsToken)
     {
         stakingToken = IERC20(_stakingToken);
         rewardsToken = IERC20(_rewardsToken);
@@ -50,7 +50,7 @@ contract LPStaking {
 
     function earned(address account) public view returns (uint) {
         return
-        ((balanceOf(account) *
+        ((_balances[account] *
         (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
         rewards[account];
     }

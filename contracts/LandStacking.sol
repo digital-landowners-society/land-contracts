@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
+interface IVLandDAO is Pausable {
+    function mint(address to, uint256 amount) public;
+    function burn(address account, uint256 amount) public;
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+}
+
+contract LandStacking {
     IERC20 public immutable landToken;
+    IVLandDAO public immutable vLandToken;
 
     uint256 public rewardRate = 30e18;
     uint256 public immutable startBlock;
@@ -18,11 +25,10 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
     mapping(address => uint256) public rewards;
     mapping(address => TokenTimelock[]) public timeLocks;
 
-    constructor(string memory name_, string memory symbol_, address _landToken)
-    ERC20(name_, symbol_)
-    ERC20Permit(name_)
+    constructor(address _landToken, address _vLandToken)
     {
         landToken = IERC20(_landToken);
+        vLandToken = IVLandDAO(_vLandToken);
         startBlock = block.number;
         endBlock = block.number + 1e6;
     }
@@ -37,7 +43,7 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
         }
         return
         rewardPerTokenStored +
-        (((lastBlock() - lastUpdateBlock) * rewardRate * 1e18) / totalSupply());
+        (((lastBlock() - lastUpdateBlock) * rewardRate * 1e18) / vLandToken.totalSupply());
     }
 
     function earned(address account) public view returns (uint256) {
@@ -55,42 +61,22 @@ contract LandStacking is ERC20, ERC20Permit, ERC20Votes {
         _;
     }
 
-    function stake(uint256 _amount) external updateReward(msg.sender) {
+    function stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
         landToken.transferFrom(msg.sender, address(this), _amount);
-        _mint(msg.sender, _amount);
+        vLandToken.mint(msg.sender, _amount);
     }
 
-    function withdraw(uint256 _amount) external updateReward(msg.sender) {
+    function withdraw(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
         TokenTimelock timeLock = new TokenTimelock(landToken, msg.sender, block.timestamp + 30 days);
         landToken.transfer(address(timeLock), _amount);
         timeLocks[msg.sender].push(timeLock);
-        _burn(msg.sender, _amount);
+        vLandToken.burn(msg.sender, _amount);
     }
 
-    function getReward() external updateReward(msg.sender) {
+    function getReward() external whenNotPaused updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
         landToken.transfer(msg.sender, reward);
     }
 
-    function _afterTokenTransfer(address from, address to, uint256 amount)
-    internal
-    override(ERC20, ERC20Votes)
-    {
-        super._afterTokenTransfer(from, to, amount);
-    }
-
-    function _mint(address to, uint256 amount)
-    internal
-    override(ERC20, ERC20Votes)
-    {
-        super._mint(to, amount);
-    }
-
-    function _burn(address account, uint256 amount)
-    internal
-    override(ERC20, ERC20Votes)
-    {
-        super._burn(account, amount);
-    }
 }
