@@ -90,7 +90,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     function transferringUnclaimedTokens(address treasuryManager) public onlyOwner {
         require(block.timestamp > startDate + 180 days, "LandDAO: landowners claim not finished yet");
-        _transfer(address(this), treasuryManager, landOwnersSupply-landOwnersSpent);
+        _transfer(address(this), treasuryManager, landOwnersSupply - landOwnersSpent);
     }
 
     // DLS NFT Logic
@@ -105,11 +105,11 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
         _transfer(address(this), msg.sender, amount);
     }
 
-    function setClaimEnabled(bool claimEnabled_) external onlyOwner{
+    function setClaimEnabled(bool claimEnabled_) external onlyOwner {
         claimEnabled = claimEnabled_;
     }
 
-    function setAllowlistEnabled(bool allowlistEnabled_) external onlyOwner{
+    function setAllowlistEnabled(bool allowlistEnabled_) external onlyOwner {
         allowlistEnabled = allowlistEnabled_;
     }
 }

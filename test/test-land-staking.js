@@ -153,4 +153,56 @@ describe("LandStaking stake", function () {
     await staking.unpause();
     await staking.exit();
   });
+
+  it("Should be unable to transfer", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner, addr1] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await staking.stake(ether);
+    expect(await staking.balanceOf(owner.address)).to.equal(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await staking.totalSupply()).to.equal(ether);
+    expect(await vLandDao.balanceOf(owner.address)).to.equal(ether);
+    await expect(vLandDao.transfer(addr1.address, ether)).to.be.reverted;
+  });
+
+  it("Should be unable to withdraw with time lock", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await staking.stake(ether);
+    expect(await staking.balanceOf(owner.address)).to.equal(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await staking.totalSupply()).to.equal(ether);
+    expect(await vLandDao.balanceOf(owner.address)).to.equal(ether);
+    await staking.withdraw(ether);
+    const timeLock = await staking.timeLocks(owner.address, 0);
+    expect(await landDao.balanceOf(timeLock)).to.equal(ether);
+
+    let abi = [ "function release()" ];
+    let iface = new ethers.utils.Interface(abi);
+    const data = iface.encodeFunctionData("release");
+    await expect(owner.sendTransaction({to: timeLock, data: data})).to.revertedWith("TokenTimelock: current time is before release time");
+
+    const nextDate = 3600 * 24 * 31;
+    await network.provider.send("evm_increaseTime", [nextDate]);
+    await network.provider.send("evm_mine");
+    await owner.sendTransaction({to: timeLock, data: data});
+
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000"));
+  });
 });
