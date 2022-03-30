@@ -75,7 +75,7 @@ contract LPStaking {
         stakingToken.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function withdrawAndGetReward(uint _amount) external updateReward(msg.sender) {
+    function withdrawAndGetReward(uint _amount) external {
         withdraw(_amount);
         getReward();
     }
