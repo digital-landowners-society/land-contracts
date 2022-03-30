@@ -205,4 +205,33 @@ describe("LandStaking stake", function () {
 
     expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000"));
   });
+
+  it("Should be unable to claim all rewards", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner, addr1] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("team", addr1.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await landDao.connect(addr1).approve(staking.address, ether);
+    await staking.stake(ether);
+    await staking.connect(addr1).stake(ether);
+    for (let i = 0; i < 1000; i++) {
+      await network.provider.send("evm_mine");
+    }
+    const startingBalance = await landDao.balanceOf(addr1.address);
+
+    await staking.exit();
+
+    const reward = ether.mul(30).mul(1001).div(2).add(ether.mul(30));
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999").add(reward));
+
+    await staking.connect(addr1).getReward();
+    expect(await landDao.balanceOf(addr1.address)).to.equal(startingBalance.add(reward));
+  });
 });
