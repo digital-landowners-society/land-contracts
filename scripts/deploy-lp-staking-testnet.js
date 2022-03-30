@@ -5,7 +5,7 @@ async function main() {
   const landLpStaking = await LandLpStaking.deploy(
     "xTestDAO",
     "xTEST",
-    "0x2cFd5F8E8C89c0bcEd8b71d2547da8a7f7cFE9b4", // LandDAO
+    "0x9792C97C6EC5361289BE9392E601a58222b18f66", // LandDAO
     "0x77cf6f9b71bb02857e8b341cee3130b4f7f996e0", // LP
   );
   await landLpStaking.deployed();
@@ -16,7 +16,7 @@ async function main() {
     constructorArguments: [
       "xTestDAO",
       "xTEST",
-      "0x2cFd5F8E8C89c0bcEd8b71d2547da8a7f7cFE9b4", // LandDAO
+      "0x9792C97C6EC5361289BE9392E601a58222b18f66", // LandDAO
       "0x77cf6f9b71bb02857e8b341cee3130b4f7f996e0", // LP
     ],
   });

@@ -1,14 +1,18 @@
 const hre = require("hardhat");
 
-async function main() {
-  const LandDao = await hre.ethers.getContractFactory("VLandDAO");
-  const landDao = await LandDao.deploy("vTestDAO", "vTEST");
-  await landDao.deployed();
-  console.log("VLandDAO deployed to:", landDao.address);
+function sleep(s) {
+  return new Promise(resolve => setTimeout(resolve, s*1000));
+}
 
+async function main() {
+  const VLandDao = await hre.ethers.getContractFactory("VLandDAO");
+  const vLandDao = await VLandDao.deploy("vTestDAO1", "vTEST1");
+  await vLandDao.deployed();
+  console.log("VLandDAO deployed to:", vLandDao.address);
+  await sleep(10);
   await hre.run("verify:verify", {
-    address: landDao.address,
-    constructorArguments: ["vTestDAO", "vTEST"],
+    address: vLandDao.address,
+    constructorArguments: ["vTestDAO1", "vTEST1"],
   });
   console.log("Source Verified");
 }
