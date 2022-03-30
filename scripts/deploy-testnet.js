@@ -5,7 +5,7 @@ async function main() {
   const landDao = await LandDao.deploy(
     "TestDAO",
     "TEST",
-    "0xea8b08fdf5865b16cea49cbfc20bc8bf64da6e97"
+    "0xea8b08fdf5865b16cea49cbfc20bc8bf64da6e97" // DLS NFT
   );
   await landDao.deployed();
   console.log("LandDao deployed to:", landDao.address);
@@ -15,7 +15,7 @@ async function main() {
     constructorArguments: [
       "TestDAO",
       "TEST",
-      "0xea8b08fdf5865b16cea49cbfc20bc8bf64da6e97",
+      "0xea8b08fdf5865b16cea49cbfc20bc8bf64da6e97", // DLS NFT
     ],
   });
   console.log("Source Verified");
