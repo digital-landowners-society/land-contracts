@@ -23,7 +23,7 @@ const getPoolRewards = async (landDao) => {
 
 describe("Pool reward", function () {
   const maxSupply = BigNumber.from(10).pow(18).mul(340_000_000);
-  const oneDayAmount = maxSupply.div(630);
+  const oneDayAmount = maxSupply.div(720);
 
   it("Should throw exception when treasury address not set", async function () {
     const landDao = await deployLandDao();
@@ -47,7 +47,7 @@ describe("Pool reward", function () {
     const contract = await getPoolRewards(landDao);
     const [owner] = await ethers.getSigners();
     await contract.setPoolRewardsWallet(owner.address);
-    await expect(contract.distributePoolRewards(1)).to.be.revertedWith(
+    await expect(contract.distributePoolRewards(maxSupply)).to.be.revertedWith(
       "PoolRewardsManager: amount more than releasable"
     );
   });
@@ -56,7 +56,7 @@ describe("Pool reward", function () {
     const contract = await getPoolRewards(landDao);
     const [owner] = await ethers.getSigners();
     await contract.setPoolRewardsWallet(owner.address);
-    const nextDate = 3600 * 24 * 100;
+    const nextDate = 3600 * 24;
     await network.provider.send("evm_increaseTime", [nextDate]);
     await network.provider.send("evm_mine");
     await contract.distributePoolRewards(1);
@@ -81,8 +81,7 @@ describe("Pool reward", function () {
     const [owner] = await ethers.getSigners();
     await contract.setPoolRewardsWallet(owner.address);
     const nextDay = 3600 * 24;
-    const nextDate = nextDay * 91;
-    await network.provider.send("evm_increaseTime", [nextDate]);
+    await network.provider.send("evm_increaseTime", [nextDay]);
     await network.provider.send("evm_mine");
     await contract.distributePoolRewards(oneDayAmount);
     const balance = await landDao.balanceOf(owner.address);
