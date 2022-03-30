@@ -3,6 +3,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IVLandDAO  {
     function mint(address to, uint256 amount) external;
@@ -11,7 +12,7 @@ interface IVLandDAO  {
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract LandStaking is Pausable {
+contract LandStaking is Pausable, Ownable {
     IERC20 public immutable landToken;
     IVLandDAO public immutable vLandToken;
 
@@ -26,6 +27,7 @@ contract LandStaking is Pausable {
     mapping(address => TokenTimelock[]) public timeLocks;
 
     constructor(address _landToken, address _vLandToken)
+    Ownable()
     {
         landToken = IERC20(_landToken);
         vLandToken = IVLandDAO(_vLandToken);
@@ -74,17 +76,35 @@ contract LandStaking is Pausable {
         vLandToken.mint(msg.sender, _amount);
     }
 
-    function withdraw(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
+    function withdraw(uint256 _amount) public whenNotPaused updateReward(msg.sender) {
         TokenTimelock timeLock = new TokenTimelock(landToken, msg.sender, block.timestamp + 30 days);
         landToken.transfer(address(timeLock), _amount);
         timeLocks[msg.sender].push(timeLock);
         vLandToken.burn(msg.sender, _amount);
     }
 
-    function getReward() external whenNotPaused updateReward(msg.sender) {
+    function getReward() public whenNotPaused updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
         landToken.transfer(msg.sender, reward);
+    }
+
+    function exit() external {
+        withdraw(vLandToken.balanceOf(msg.sender));
+        getReward();
+    }
+
+    function withdrawAndGetReward(uint _amount) external {
+        withdraw(_amount);
+        getReward();
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
 }

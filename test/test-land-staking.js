@@ -86,4 +86,71 @@ describe("LandStaking stake", function () {
     expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000029"));
 
   });
+
+  it("Should be able to exit", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await staking.stake(ether);
+    expect(await staking.balanceOf(owner.address)).to.equal(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await staking.totalSupply()).to.equal(ether);
+
+    await staking.exit();
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000029"));
+    const timeLock = await staking.timeLocks(owner.address, 0);
+    const lastBalance = await landDao.balanceOf(timeLock);
+    expect(lastBalance).to.equal(ether);
+  });
+
+  it("Should be able to withdraw and get reward", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await staking.stake(ether);
+    expect(await staking.balanceOf(owner.address)).to.equal(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await staking.totalSupply()).to.equal(ether);
+
+    await staking.withdrawAndGetReward(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000029"));
+    const timeLock = await staking.timeLocks(owner.address, 0);
+    const lastBalance = await landDao.balanceOf(timeLock);
+    expect(lastBalance).to.equal(ether);
+  });
+
+  it("Should be able to pause", async function () {
+    const landDao = await deployLandDao();
+    const vLandDao = await deployVLand();
+    const staking = await deployStaking(landDao, vLandDao);
+    await vLandDao.setStaking(staking.address);
+
+    const [owner] = await ethers.getSigners();
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("singleStakingRewards", staking.address);
+
+    await landDao.approve(staking.address, ether);
+    await staking.stake(ether);
+    expect(await staking.balanceOf(owner.address)).to.equal(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await staking.totalSupply()).to.equal(ether);
+    await staking.pause();
+    await expect(staking.withdrawAndGetReward(ether)).to.be.revertedWith("Pausable: paused");
+    await staking.unpause();
+    await staking.exit();
+  });
 });
