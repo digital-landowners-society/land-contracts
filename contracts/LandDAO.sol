@@ -19,6 +19,7 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
     mapping(address => uint8) public landOwnerClaimed;
     bool public claimEnabled;
     bool public allowlistEnabled;
+    bool public unclaimedTokensTransferred;
 
     // CONSTRUCTOR
     constructor(string memory name_, string memory symbol_, address dlsNftAddress) ERC20(name_, symbol_) ERC20Permit(name_) {
@@ -90,6 +91,8 @@ contract LandDAO is ERC20, ERC20Permit, Ownable {
 
     function transferringUnclaimedTokens(address treasuryManager) public onlyOwner {
         require(block.timestamp > startDate + 180 days, "LandDAO: landowners claim not finished yet");
+        require(!unclaimedTokensTransferred);
+        unclaimedTokensTransferred = true;
         _transfer(address(this), treasuryManager, landOwnersSupply - landOwnersSpent);
     }
 
