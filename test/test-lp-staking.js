@@ -44,7 +44,7 @@ describe("LPStaking stake", function () {
     expect(supply).to.equal(0);
 
     const rewards = await landDao.balanceOf(lpStaking.address);
-    expect(rewards).to.equal(ethers.utils.parseEther("30000000"));
+    expect(rewards).to.equal(ethers.utils.parseEther("70000000"));
 
     const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(ethers.utils.parseEther("100000000"));
