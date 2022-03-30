@@ -38,7 +38,7 @@ describe("LPStaking stake", function () {
 
     const lpStaking = await deployLPStaking(landDao, lpMock);
     await landDao.sendTokens("treasury", owner.address);
-    await landDao.sendTokens("singleStakingRewards", lpStaking.address);
+    await landDao.sendTokens("liquidityPoolRewards", lpStaking.address);
 
     const supply = await lpStaking.totalSupply();
     expect(supply).to.equal(0);
@@ -74,7 +74,7 @@ describe("LPStaking stake", function () {
 
     const lpStaking = await deployLPStaking(landDao, lpMock);
     await landDao.sendTokens("treasury", owner.address);
-    await landDao.sendTokens("singleStakingRewards", lpStaking.address);
+    await landDao.sendTokens("liquidityPoolRewards", lpStaking.address);
 
     await lpMock.approve(lpStaking.address, ether);
     await lpStaking.stake(ether);
