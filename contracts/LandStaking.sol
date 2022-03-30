@@ -5,10 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IVLandDAO  {
+interface IVLandDAO {
     function mint(address to, uint256 amount) external;
+
     function burn(address account, uint256 amount) external;
+
     function totalSupply() external view returns (uint256);
+
     function balanceOf(address account) external view returns (uint256);
 }
 

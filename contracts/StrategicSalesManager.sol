@@ -9,7 +9,7 @@ contract StrategicSalesManager is Ownable {
 
     uint256 public startDate;
     IERC20 public landDao;
-    mapping(address=>VestingWallet[]) strategicSaleVestingMap;
+    mapping(address => VestingWallet[]) strategicSaleVestingMap;
 
     constructor(address landDaoAddress) Ownable() {
         landDao = IERC20(landDaoAddress);
@@ -43,7 +43,7 @@ contract StrategicSalesManager is Ownable {
     function strategicSaleRelease(address beneficiary) internal {
         VestingWallet[] memory vestingWallets = strategicSaleVestingMap[beneficiary];
         require(vestingWallets.length > 0, "StrategicSalesManager: not eligible");
-        for (uint256 i=0; i<vestingWallets.length; i++) {
+        for (uint256 i = 0; i < vestingWallets.length; i++) {
             vestingWallets[i].release(address(landDao));
         }
     }
