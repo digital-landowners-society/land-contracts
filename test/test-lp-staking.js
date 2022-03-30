@@ -86,4 +86,52 @@ describe("LPStaking stake", function () {
     await lpStaking.getReward();
     expect(await landDao.balanceOf(owner.address)).to.equal(ether.mul("100000070"));
   });
+
+  it("Should be able to exit", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const landDao = await deployLandDao();
+    const lpMock = await deployMock(landDao);
+    await lpMock.mint(owner.address, ether);
+
+    const lpStaking = await deployLPStaking(landDao, lpMock);
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("liquidityPoolRewards", lpStaking.address);
+
+    await lpMock.approve(lpStaking.address, ether);
+    await lpStaking.stake(ether);
+
+    expect(await lpStaking.balanceOf(owner.address)).to.equal(ether);
+    expect(await lpMock.balanceOf(owner.address)).to.equal(0);
+    expect(await lpStaking.totalSupply()).to.equal(ether);
+
+    await lpStaking.exit();
+    expect(await landDao.balanceOf(owner.address)).to.equal(ether.mul("100000070"));
+    const lastLpBalance = await lpMock.balanceOf(owner.address);
+    expect(lastLpBalance).to.equal(ether);
+  });
+
+  it("Should be able to withdraw and exit", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const landDao = await deployLandDao();
+    const lpMock = await deployMock(landDao);
+    await lpMock.mint(owner.address, ether);
+
+    const lpStaking = await deployLPStaking(landDao, lpMock);
+    await landDao.sendTokens("treasury", owner.address);
+    await landDao.sendTokens("liquidityPoolRewards", lpStaking.address);
+
+    await lpMock.approve(lpStaking.address, ether);
+    await lpStaking.stake(ether);
+
+    expect(await lpStaking.balanceOf(owner.address)).to.equal(ether);
+    expect(await lpMock.balanceOf(owner.address)).to.equal(0);
+    expect(await lpStaking.totalSupply()).to.equal(ether);
+
+    await lpStaking.withdrawAndGetReward(ether);
+    expect(await landDao.balanceOf(owner.address)).to.equal(ether.mul("100000070"));
+    const lastLpBalance = await lpMock.balanceOf(owner.address);
+    expect(lastLpBalance).to.equal(ether);
+  });
 });
