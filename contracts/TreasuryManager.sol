@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./LandDaoVesting.sol";
+import "./LandDAOVesting.sol";
 
 contract TreasuryManager is Ownable {
 
@@ -28,7 +28,7 @@ contract TreasuryManager is Ownable {
     }
 
     function treasuryReleasableAmount() public view returns (uint256) {
-        return LandDaoVesting.vestingSchedule(treasurySupply, startDate, block.timestamp) - treasuryReleased;
+        return LandDAOVesting.vestingSchedule(treasurySupply, startDate, block.timestamp) - treasuryReleased;
     }
 
     function setTreasury(address treasuryWalletAddress) external onlyOwner {

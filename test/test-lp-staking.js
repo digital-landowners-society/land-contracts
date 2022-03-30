@@ -28,7 +28,7 @@ const deployMock = async (landDao, factoryName) => {
   return contract;
 };
 
-describe("LandStacking stake", function () {
+describe("LPStaking stake", function () {
   it("Should be able to stake and un-stake", async function () {
     const landDao = await deployLandDao();
     const lpMock = await deployMock(landDao, "MockERC20");
@@ -37,7 +37,7 @@ describe("LandStacking stake", function () {
 
     const lpStaking = await deploySubContract(landDao, lpMock,"LPStaking");
     await landDao.sendTokens("treasury", owner.address);
-    await landDao.sendTokens("singleStackingRewards", lpStaking.address);
+    await landDao.sendTokens("singleStakingRewards", lpStaking.address);
 
     const supply = await lpStaking.totalSupply();
     expect(supply).to.equal(0);
@@ -53,8 +53,8 @@ describe("LandStacking stake", function () {
 
     const newBalance = await landDao.balanceOf(owner.address);
     expect(newBalance).to.equal(ethers.utils.parseEther("100000000").sub(ether));
-    const stackingBalance = await lpStaking.balanceOf(owner.address);
-    expect(stackingBalance).to.equal(ether);
+    const stakingBalance = await lpStaking.balanceOf(owner.address);
+    expect(stakingBalance).to.equal(ether);
     expect(await lpStaking.totalSupply()).to.equal(ether);
     await network.provider.send("evm_mine");
     await lpStaking.withdraw(ether);
@@ -69,10 +69,10 @@ describe("LandStacking stake", function () {
     const lpMock = await deploySubContract(landDao, "MockERC20");
     const [owner] = await ethers.getSigners();
     await lpMock.mint(owner.address, ether);
-    const lpStaking = await deploySubContract(landDao, lpMock,"LPStacking");
+    const lpStaking = await deploySubContract(landDao, lpMock,"LPStaking");
 
     await landDao.sendTokens("treasury", owner.address);
-    await landDao.sendTokens("singleStackingRewards", lpStaking.address);
+    await landDao.sendTokens("singleStakingRewards", lpStaking.address);
 
     await landDao.approve(lpStaking.address, ether);
     await lpStaking.stake(ether);

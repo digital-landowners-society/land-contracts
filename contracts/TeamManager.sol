@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./LandDaoVesting.sol";
+import "./LandDAOVesting.sol";
 
 contract TeamManager is Ownable {
 
@@ -33,7 +33,7 @@ contract TeamManager is Ownable {
     }
 
     function teamReleasableAmount() public view returns (uint256) {
-        return LandDaoVesting.vestingSchedule(teamSupply, startDate, block.timestamp) - teamReleased;
+        return LandDAOVesting.vestingSchedule(teamSupply, startDate, block.timestamp) - teamReleased;
     }
 
     function distributeTeam(uint256 amount) external onlyOwner {

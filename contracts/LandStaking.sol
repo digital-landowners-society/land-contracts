@@ -33,6 +33,14 @@ contract LandStaking is Pausable {
         endBlock = block.number + 1e6;
     }
 
+    function totalSupply() external view returns (uint256) {
+        return vLandToken.totalSupply();
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return vLandToken.balanceOf(account);
+    }
+
     function lastBlock() public view returns (uint256) {
         return block.number < endBlock ? block.number : endBlock;
     }
