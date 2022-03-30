@@ -14,15 +14,15 @@ const deployLandDao = async () => {
   return landDao;
 };
 
-const deploySubContract = async (landDao, lpMock, factoryName) => {
-  const factory = await ethers.getContractFactory(factoryName);
+const deployLPStaking = async (landDao, lpMock) => {
+  const factory = await ethers.getContractFactory("LPStaking");
   const contract = await factory.deploy(landDao.address, lpMock.address);
   await contract.deployed();
   return contract;
 };
 
-const deployMock = async (landDao, factoryName) => {
-  const factory = await ethers.getContractFactory(factoryName);
+const deployMock = async (landDao) => {
+  const factory = await ethers.getContractFactory("MockERC20");
   const contract = await factory.deploy();
   await contract.deployed();
   return contract;
@@ -30,12 +30,13 @@ const deployMock = async (landDao, factoryName) => {
 
 describe("LPStaking stake", function () {
   it("Should be able to stake and un-stake", async function () {
-    const landDao = await deployLandDao();
-    const lpMock = await deployMock(landDao, "MockERC20");
     const [owner] = await ethers.getSigners();
+
+    const landDao = await deployLandDao();
+    const lpMock = await deployMock(landDao);
     await lpMock.mint(owner.address, ether);
 
-    const lpStaking = await deploySubContract(landDao, lpMock,"LPStaking");
+    const lpStaking = await deployLPStaking(landDao, lpMock);
     await landDao.sendTokens("treasury", owner.address);
     await landDao.sendTokens("singleStakingRewards", lpStaking.address);
 
@@ -48,40 +49,41 @@ describe("LPStaking stake", function () {
     const balance = await landDao.balanceOf(owner.address);
     expect(balance).to.equal(ethers.utils.parseEther("100000000"));
 
-    await landDao.approve(lpStaking.address, ether);
+    await lpMock.approve(lpStaking.address, ether);
     await lpStaking.stake(ether);
 
-    const newBalance = await landDao.balanceOf(owner.address);
-    expect(newBalance).to.equal(ethers.utils.parseEther("100000000").sub(ether));
+    const lpBalance = await lpMock.balanceOf(owner.address);
+    expect(lpBalance).to.equal(0);
     const stakingBalance = await lpStaking.balanceOf(owner.address);
     expect(stakingBalance).to.equal(ether);
     expect(await lpStaking.totalSupply()).to.equal(ether);
     await network.provider.send("evm_mine");
     await lpStaking.withdraw(ether);
-    const lastBalance = await landDao.balanceOf(timeLock);
-    expect(lastBalance).to.equal(ether);
+    const lastLpBalance = await lpMock.balanceOf(owner.address);
+    expect(lastLpBalance).to.equal(ether);
     expect(await lpStaking.balanceOf(owner.address)).to.equal(0);
     expect(await lpStaking.totalSupply()).to.equal(0);
   });
 
   it("Should be able to distribute reward", async function () {
-    const landDao = await deployLandDao();
-    const lpMock = await deploySubContract(landDao, "MockERC20");
     const [owner] = await ethers.getSigners();
-    await lpMock.mint(owner.address, ether);
-    const lpStaking = await deploySubContract(landDao, lpMock,"LPStaking");
 
+    const landDao = await deployLandDao();
+    const lpMock = await deployMock(landDao);
+    await lpMock.mint(owner.address, ether);
+
+    const lpStaking = await deployLPStaking(landDao, lpMock);
     await landDao.sendTokens("treasury", owner.address);
     await landDao.sendTokens("singleStakingRewards", lpStaking.address);
 
-    await landDao.approve(lpStaking.address, ether);
+    await lpMock.approve(lpStaking.address, ether);
     await lpStaking.stake(ether);
+
     expect(await lpStaking.balanceOf(owner.address)).to.equal(ether);
-    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("99999999"));
+    expect(await lpMock.balanceOf(owner.address)).to.equal(0);
     expect(await lpStaking.totalSupply()).to.equal(ether);
 
     await lpStaking.getReward();
-    expect(await landDao.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000029"));
-
+    expect(await landDao.balanceOf(owner.address)).to.equal(ether.mul("100000070"));
   });
 });

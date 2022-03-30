@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LPStaking {
-    IERC20 public rewardsToken;
+    IERC20 public landToken;
     IERC20 public stakingToken;
 
     uint public constant rewardRate = 70e18;
@@ -27,10 +27,10 @@ contract LPStaking {
         return _balances[account];
     }
 
-    constructor(address _stakingToken, address _rewardsToken)
+    constructor(address _landToken, address _stakingToken)
     {
         stakingToken = IERC20(_stakingToken);
-        rewardsToken = IERC20(_rewardsToken);
+        landToken = IERC20(_landToken);
         startBlock = block.number;
         endBlock = block.number + 1e6;
     }
@@ -90,6 +90,6 @@ contract LPStaking {
     function getReward() public updateReward(msg.sender) {
         uint reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
-        rewardsToken.transfer(msg.sender, reward);
+        landToken.transfer(msg.sender, reward);
     }
 }
