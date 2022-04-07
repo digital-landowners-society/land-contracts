@@ -28,9 +28,6 @@ module.exports = {
     optimizer: {
       enabled: true,
       runs: 200,
-      // details: {
-      //   yul: false,
-      // },
     },
   },
   networks: {
@@ -42,16 +39,12 @@ module.exports = {
       url: process.env.MAINNET_URL,
       accounts: [process.env.PRIVATE_KEY],
     },
-    // development: {
-    //   url: "http://127.0.0.1:8545/",
-    //   accounts: [process.env.LOCAL_PRIVATE_KEY],
-    // },
   },
-  // defaultNetwork: "development",
+  defaultNetwork: "development",
   gasReporter: {
     enabled: true,
     currency: "USD",
-    coinmarketcap: "63127161-7293-4c3f-82f2-189677b67ea0",
+    coinmarketcap: process.env.COINMARKETCAP_KEY,
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
